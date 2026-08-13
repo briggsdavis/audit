@@ -6,7 +6,7 @@ import { useAction, useMutation, useQuery } from "convex/react";
 import { makeFunctionReference } from "convex/server";
 
 type Platform = "Instagram" | "TikTok" | "Advertisement" | "Website";
-type Project = "City of Mara" | "Nord ONE" | "Vivalia" | "Via Project";
+type Project = "City of Mara" | "Nord1" | "Vivalia" | "Via Project";
 type ImageAsset = { storageId: string; url: string };
 type Report = {
   id: string;
@@ -33,7 +33,7 @@ const REMOVE_REPORTS = makeFunctionReference<"mutation", { token: string; ids: s
 const REORDER_REPORTS = makeFunctionReference<"mutation", { token: string; ids: string[] }, void>("reports:reorder");
 const GENERATE_UPLOAD_URL = makeFunctionReference<"mutation", { token: string }, string>("reports:generateUploadUrl");
 
-const PROJECTS: Project[] = ["City of Mara", "Nord ONE", "Vivalia", "Via Project"];
+const PROJECTS: Project[] = ["City of Mara", "Nord1", "Vivalia", "Via Project"];
 const TYPES: Record<Platform, string[]> = {
   Instagram: ["Carousel", "Post", "Reel"],
   TikTok: ["Carousel", "Video"],
@@ -58,10 +58,11 @@ function DropZone({ label, images, token, onChange }: { label: string; images: I
   const input = useRef<HTMLInputElement>(null);
   const generateUploadUrl = useMutation(GENERATE_UPLOAD_URL);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const add = async (files: FileList | File[]) => {
     const valid = Array.from(files).filter((file) => ["image/jpeg", "image/png", "image/webp"].includes(file.type));
     if (!valid.length) return;
-    setUploading(true);
+    setUploading(true); setUploadError("");
     try {
       const incoming = await Promise.all(valid.map(async (file) => {
         const uploadUrl = await generateUploadUrl({ token });
@@ -71,16 +72,18 @@ function DropZone({ label, images, token, onChange }: { label: string; images: I
         return { storageId, url: URL.createObjectURL(file) };
       }));
       onChange([...images, ...incoming]);
-    } finally { setUploading(false); }
+    } catch { setUploadError("One or more images could not be uploaded. Please try again."); }
+    finally { setUploading(false); }
   };
   return <div>
     <label className="field-label">{label} <span>Optional · multiple allowed</span></label>
     <div className="dropzone" tabIndex={0} role="button" onClick={() => input.current?.click()}
       onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); add(e.dataTransfer.files); }}
-      onPaste={(e) => add(e.clipboardData.files)}>
+      onPaste={(e) => add(e.clipboardData.files)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") input.current?.click(); }}>
       <input ref={input} type="file" hidden multiple accept="image/jpeg,image/png,image/webp" onChange={(e) => e.target.files && add(e.target.files)} />
       <span className="upload-icon">↑</span><strong>{uploading ? "Uploading…" : "Drop images here"}</strong><small>or click to browse · JPEG, PNG, WebP</small>
     </div>
+    {uploadError && <p className="form-error">{uploadError}</p>}
     {images.length > 0 && <div className="image-strip">{images.map((image, index) => <div className="image-chip" key={image.storageId}>
       <img src={image.url} alt={`${label} ${index + 1}`} />
       <button type="button" aria-label="Remove image" onClick={() => onChange(images.filter((_, i) => i !== index))}>×</button>
@@ -104,6 +107,8 @@ export default function Home() {
   const [editing, setEditing] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const dragId = useRef<string | null>(null);
   const signInWithPasscode = useAction(SIGN_IN);
   const signOutSession = useMutation(SIGN_OUT);
@@ -160,9 +165,13 @@ export default function Home() {
   function openReport(report: Report) { setActive(report); setDraft({ ...report }); setEditing(false); }
   async function save() {
     if (!draft || !sessionToken || !draft.title.trim() || !draft.issue.trim() || !draft.improvement.trim()) return;
-    const next = { ...draft, updatedAt: Date.now() };
-    await saveReport({ token: sessionToken, report: { ...next, evidence: next.evidence.map((image) => image.storageId), examples: next.examples.map((image) => image.storageId) } });
-    setActive(next); setDraft(next); setEditing(false);
+    setSaving(true); setSaveError("");
+    try {
+      const next = { ...draft, updatedAt: Date.now() };
+      await saveReport({ token: sessionToken, report: { ...next, evidence: next.evidence.map((image) => image.storageId), examples: next.examples.map((image) => image.storageId) } });
+      setActive(next); setDraft(next); setEditing(false);
+    } catch { setSaveError("This report could not be saved. Please try again."); }
+    finally { setSaving(false); }
   }
   function closeModal() {
     if (editing && JSON.stringify(draft) !== JSON.stringify(active)) setConfirmClose(true);
@@ -216,7 +225,7 @@ export default function Home() {
           <div className="report-main"><div className="meta"><span className={`platform ${report.platform.toLowerCase()}`}>{report.platform}</span><i /> <span>{report.contentType}</span></div><h2>{report.title}</h2><p>{report.issue}</p></div>
           <div className="project"><span>{report.project}</span><small>Updated {new Date(report.updatedAt).toLocaleDateString("en", { day: "numeric", month: "short" })}</small></div><button className="expand" aria-label={`Open ${report.title}`}>↗</button><span className="number">{String(index + 1).padStart(2, "0")}</span>
         </article>)}
-        {!visible.length && <div className="empty"><span>⌕</span><h2>No reports found</h2><p>Try removing a filter or using a different search.</p></div>}
+        {!visible.length && <div className="empty"><span>⌕</span><h2>{reports.length ? "No reports found" : "No reports yet"}</h2><p>{reports.length ? "Try removing a filter or using a different search." : "Create your first content audit report to get started."}</p>{!reports.length && <button className="secondary" onClick={openNew}>Create a report</button>}</div>}
       </div>
     </section>
 
@@ -232,10 +241,10 @@ export default function Home() {
         <DropZone label="Screenshots" images={draft.evidence} token={sessionToken!} onChange={(evidence) => setDraft({ ...draft, evidence })} />
         <div><label className="field-label">How to do this better *</label><textarea rows={5} value={draft.improvement} onChange={(e) => setDraft({ ...draft, improvement: e.target.value })} placeholder="Explain the recommended improvement…" required /></div>
         <DropZone label="Example screenshots" images={draft.examples} token={sessionToken!} onChange={(examples) => setDraft({ ...draft, examples })} />
-        <div className="form-footer"><span>* Required fields</span><button type="button" className="secondary" onClick={closeModal}>Cancel</button><button type="submit" className="primary">{reports.some((r) => r.id === draft.id) ? "Save changes" : "Create report"}</button></div>
+        {saveError && <p className="form-error">{saveError}</p>}<div className="form-footer"><span>* Required fields</span><button type="button" className="secondary" onClick={closeModal}>Cancel</button><button type="submit" className="primary" disabled={saving}>{saving ? "Saving…" : reports.some((r) => r.id === draft.id) ? "Save changes" : "Create report"}</button></div>
       </form> : <div className="report-detail"><div className="detail-meta"><div><label>Project</label><strong>{active.project}</strong></div><div><label>Platform</label><strong>{active.platform}</strong></div><div><label>Content type</label><strong>{active.contentType}</strong></div><div><label>Last updated</label><strong>{new Date(active.updatedAt).toLocaleDateString()}</strong></div></div>
         <div className="detail-block"><label>What is wrong and why?</label><p>{active.issue}</p></div>{active.evidence.length > 0 && <div className="detail-images">{active.evidence.map((img, i) => <img key={img.storageId} src={img.url} alt={`Evidence ${i + 1}`} />)}</div>}
-        <div className="detail-block improvement"><label>How to do this better</label><p>{active.improvement}</p></div>{active.url && <a className="source-link" href={active.url} target="_blank">Open source ↗</a>}
+        <div className="detail-block improvement"><label>How to do this better</label><p>{active.improvement}</p></div>{active.examples.length > 0 && <><p className="detail-section-label">Example screenshots</p><div className="detail-images">{active.examples.map((img, i) => <img key={img.storageId} src={img.url} alt={`Example ${i + 1}`} />)}</div></>}{active.url && <a className="source-link" href={active.url} target="_blank" rel="noreferrer">Open source ↗</a>}
       </div>}
     </section></div>}
     {confirmClose && <Confirm title="Discard unsaved changes?" body="Your edits won’t be saved." confirm="Discard changes" onCancel={() => setConfirmClose(false)} onConfirm={() => { setConfirmClose(false); setActive(null); setDraft(null); setEditing(false); }} />}

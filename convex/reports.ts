@@ -18,6 +18,14 @@ const reportFields = {
   order: v.number(),
 };
 
+const projects = new Set(["City of Mara", "Nord1", "Vivalia", "Via Project"]);
+const contentTypes: Record<string, Set<string>> = {
+  Instagram: new Set(["Carousel", "Post", "Reel"]),
+  TikTok: new Set(["Carousel", "Video"]),
+  Advertisement: new Set(["Carousel", "Image", "Text"]),
+  Website: new Set(["Website"]),
+};
+
 async function requireSession(ctx: any, token: string) {
   const session = await ctx.db.query("sessions").withIndex("by_token", (q: any) => q.eq("token", token)).unique();
   if (!session || session.expiresAt <= Date.now()) throw new ConvexError("Session expired");
@@ -50,6 +58,8 @@ export const save = mutationGeneric({
   args: { token: v.string(), report: v.object(reportFields) },
   handler: async (ctx, { token, report }) => {
     await requireSession(ctx, token);
+    if (!report.title.trim() || !report.issue.trim() || !report.improvement.trim()) throw new ConvexError("Required fields are missing");
+    if (!projects.has(report.project) || !contentTypes[report.platform]?.has(report.contentType)) throw new ConvexError("Invalid report classification");
     const existing = await ctx.db.query("reports").withIndex("by_external_id", (q) => q.eq("externalId", report.id)).unique();
     const value = {
       externalId: report.id,
