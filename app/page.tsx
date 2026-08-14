@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { makeFunctionReference } from "convex/server";
+import { SwotWorkspace } from "./SwotWorkspace";
 
 type Platform = "Instagram" | "TikTok" | "Advertisement" | "Website";
 type Project = "City of Mara" | "Nord1" | "Vivalia" | "Via Project";
@@ -118,6 +119,7 @@ function DropZone({ label, images, token, language, onChange }: { label: string;
 
 export default function Home() {
   const [language, setLanguage] = useState<Language>("en");
+  const [section, setSection] = useState<"reports" | "swot">("reports");
   const [sessionToken, setSessionToken] = useState<string | null | undefined>(undefined);
   const [passcode, setPasscode] = useState("");
   const [authError, setAuthError] = useState(false);
@@ -155,6 +157,7 @@ export default function Home() {
       setSessionToken(localStorage.getItem("audit-session"));
       setView((localStorage.getItem("audit-view") as "list" | "grid") || "list");
       setLanguage(localStorage.getItem("audit-language") === "ro" ? "ro" : "en");
+      setSection(localStorage.getItem("audit-section") === "swot" ? "swot" : "reports");
     });
   }, []);
   useEffect(() => {
@@ -255,6 +258,10 @@ export default function Home() {
     setLanguage(next);
     localStorage.setItem("audit-language", next);
   }
+  function changeSection(next: "reports" | "swot") {
+    setSection(next);
+    localStorage.setItem("audit-section", next);
+  }
 
   if (authenticated === null) return <main className="auth-shell"><div className="loader" /></main>;
   if (!authenticated) return <main className="auth-shell"><div className="auth-language"><LanguageToggle language={language} onChange={changeLanguage} /></div><section className="login-card">
@@ -265,8 +272,8 @@ export default function Home() {
   </section></main>;
 
   return <main className="app-shell">
-    <header><div><div className="brand-mark small">A</div><span className="wordmark">Alber Audit</span></div><div className="header-actions"><LanguageToggle language={language} onChange={changeLanguage} /><button className="ghost" onClick={async () => { if (sessionToken) await signOutSession({ token: sessionToken }); localStorage.removeItem("audit-session"); setSessionToken(null); }}>{t.logOut}</button></div></header>
-    <section className="workspace">
+    <header><div><div className="brand-mark small">A</div><span className="wordmark">Alber Audit</span></div><nav className="section-toggle" aria-label="Workspace"><button className={section === "reports" ? "active" : ""} onClick={() => changeSection("reports")}>{t.reports}</button><button className={section === "swot" ? "active" : ""} onClick={() => changeSection("swot")}>SWOT</button></nav><div className="header-actions"><LanguageToggle language={language} onChange={changeLanguage} /><button className="ghost" onClick={async () => { if (sessionToken) await signOutSession({ token: sessionToken }); localStorage.removeItem("audit-session"); setSessionToken(null); }}>{t.logOut}</button></div></header>
+    <section className="workspace" hidden={section !== "reports"}>
       <div className="title-row"><h1>{t.reports} <span>{reports.length}</span></h1><button className="primary add" onClick={openNew}><b>＋</b> {t.newReport}</button></div>
       <div className="toolbar">
         <div className="search"><span>⌕</span><input aria-label={t.searchReports} placeholder={t.searchReports} value={query} onChange={(e) => setQuery(e.target.value)} /></div>
@@ -296,6 +303,7 @@ export default function Home() {
         {!visible.length && <div className="empty"><span>⌕</span><h2>{reports.length ? t.noReportsFound : t.noReportsYet}</h2><p>{reports.length ? t.noReportsFiltered : t.noReportsEmpty}</p>{!reports.length && <button className="secondary" onClick={openNew}>{t.createAReport}</button>}</div>}
       </div>
     </section>
+    {section === "swot" && sessionToken && <SwotWorkspace token={sessionToken} language={language} reports={reports} onOpenReport={(reportId) => { const report = reports.find((item) => item.id === reportId); if (report) { changeSection("reports"); openReport(report); } }} />}
 
     {active && draft && <div className={`modal-backdrop ${modalClosing ? "closing" : ""}`} onMouseDown={(e) => e.target === e.currentTarget && closeModal()}><section className="modal" role="dialog" aria-modal="true">
       <div className="modal-head"><div><p className="eyebrow">{reports.some((r) => r.id === active.id) ? t.reportDetail : t.newReport}</p><h2>{editing ? (reports.some((r) => r.id === active.id) ? t.editReport : t.createAReport) : active.title}</h2></div><div>{!editing && <button className="secondary" onClick={() => setEditing(true)}>{t.edit}</button>}{editing && reports.some((r) => r.id === active.id) && <button className="secondary" onClick={() => { setDraft({ ...active }); setEditing(false); }}>{t.cancel}</button>}<button className="close" aria-label={t.close} onClick={closeModal}>×</button></div></div>
