@@ -21,4 +21,10 @@ export default defineSchema({
     updatedAt: v.number(),
     order: v.number(),
   }).index("by_external_id", ["externalId"]),
+  websiteContentTypes: defineTable({
+    project: v.string(),
+    name: v.string(),
+    normalizedName: v.string(),
+    createdAt: v.number(),
+  }).index("by_project_normalized_name", ["project", "normalizedName"]),
 });
