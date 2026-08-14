@@ -55,3 +55,14 @@ export const save = mutationGeneric({
     else await ctx.db.insert("swotPoints", { externalId: point.id, ...value });
   },
 });
+
+export const remove = mutationGeneric({
+  args: { token: v.string(), ids: v.array(v.string()) },
+  handler: async (ctx, { token, ids }) => {
+    await requireSession(ctx, token);
+    for (const id of [...new Set(ids)]) {
+      const point = await ctx.db.query("swotPoints").withIndex("by_external_id", (q) => q.eq("externalId", id)).unique();
+      if (point) await ctx.db.delete(point._id);
+    }
+  },
+});

@@ -11,13 +11,14 @@ type SwotPoint = { id: string; title: string; analysis: string; quadrant: Quadra
 
 const LIST_SWOT = makeFunctionReference<"query", { token: string }, SwotPoint[]>("swot:list");
 const SAVE_SWOT = makeFunctionReference<"mutation", { token: string; point: SwotPoint }, void>("swot:save");
+const REMOVE_SWOT = makeFunctionReference<"mutation", { token: string; ids: string[] }, void>("swot:remove");
 const QUADRANTS: Quadrant[] = ["strength", "weakness", "opportunity", "threat"];
 const COPY = {
   en: {
-    title: "SWOT analysis", add: "Add a point of analysis", all: "All quadrants", previous: "Previous quadrant", next: "Next quadrant", list: "List view", grid: "Icon view", strength: "Strengths", weakness: "Weaknesses", opportunity: "Opportunities", threat: "Threats", point: "point", points: "points", empty: "No analysis points yet", emptyHint: "Add a point to begin building this quadrant.", evidence: "evidence sources", evidenceOne: "evidence source", noEvidence: "No reports linked", detail: "Analysis detail", close: "Close", quadrant: "Quadrant", analysis: "Analysis", linkedReports: "Linked reports", openReport: "Open report", newPoint: "New analysis point", pointTitle: "Title", titlePlaceholder: "A concise strategic observation", analysisPlaceholder: "Explain the insight, why it matters, and its implications…", chooseEvidence: "Select reports as evidence", evidenceHint: "Link any relevant reports from the Reports workspace.", search: "Search reports…", noReports: "No matching reports", selected: "selected", cancel: "Cancel", save: "Add point", saving: "Saving…", required: "Enter a title and analysis before saving.", saveError: "The analysis point could not be saved. Please try again.",
+    title: "SWOT analysis", add: "Add a point of analysis", all: "All quadrants", previous: "Previous quadrant", next: "Next quadrant", list: "List view", grid: "Icon view", select: "Select", done: "Done", delete: "Delete", strength: "Strengths", weakness: "Weaknesses", opportunity: "Opportunities", threat: "Threats", point: "point", points: "points", empty: "No analysis points yet", emptyHint: "Add a point to begin building this quadrant.", evidence: "evidence sources", evidenceOne: "evidence source", noEvidence: "No reports linked", detail: "Analysis detail", close: "Close", quadrant: "Quadrant", analysis: "Analysis", linkedReports: "Linked reports", openReport: "Open report", newPoint: "New analysis point", pointTitle: "Title", titlePlaceholder: "A concise strategic observation", analysisPlaceholder: "Explain the insight, why it matters, and its implications…", chooseEvidence: "Select reports as evidence", evidenceHint: "Link any relevant reports from the Reports workspace.", search: "Search reports…", noReports: "No matching reports", selected: "selected", cancel: "Cancel", save: "Add point", saving: "Saving…", required: "Enter a title and analysis before saving.", saveError: "The analysis point could not be saved. Please try again.", deleteBody: "The selected analysis points will be permanently removed from the SWOT analysis.", deleteConfirm: "Delete points",
   },
   ro: {
-    title: "Analiză SWOT", add: "Adaugă un punct de analiză", all: "Toate cadranele", previous: "Cadranul anterior", next: "Cadranul următor", list: "Vizualizare listă", grid: "Vizualizare cu pictograme", strength: "Puncte forte", weakness: "Puncte slabe", opportunity: "Oportunități", threat: "Amenințări", point: "punct", points: "puncte", empty: "Nu există încă puncte de analiză", emptyHint: "Adaugă un punct pentru a începe analiza acestui cadran.", evidence: "dovezi", evidenceOne: "dovadă", noEvidence: "Niciun raport asociat", detail: "Detalii analiză", close: "Închide", quadrant: "Cadran", analysis: "Analiză", linkedReports: "Rapoarte asociate", openReport: "Deschide raportul", newPoint: "Punct nou de analiză", pointTitle: "Titlu", titlePlaceholder: "O observație strategică formulată concis", analysisPlaceholder: "Explică observația, relevanța și implicațiile acesteia…", chooseEvidence: "Selectează rapoarte ca dovezi", evidenceHint: "Asociază orice raport relevant din secțiunea Rapoarte.", search: "Caută rapoarte…", noReports: "Niciun raport găsit", selected: "selectate", cancel: "Anulează", save: "Adaugă punctul", saving: "Se salvează…", required: "Completează titlul și analiza înainte de salvare.", saveError: "Punctul de analiză nu a putut fi salvat. Încearcă din nou.",
+    title: "Analiză SWOT", add: "Adaugă un punct de analiză", all: "Toate cadranele", previous: "Cadranul anterior", next: "Cadranul următor", list: "Vizualizare listă", grid: "Vizualizare cu pictograme", select: "Selectează", done: "Gata", delete: "Șterge", strength: "Puncte forte", weakness: "Puncte slabe", opportunity: "Oportunități", threat: "Amenințări", point: "punct", points: "puncte", empty: "Nu există încă puncte de analiză", emptyHint: "Adaugă un punct pentru a începe analiza acestui cadran.", evidence: "dovezi", evidenceOne: "dovadă", noEvidence: "Niciun raport asociat", detail: "Detalii analiză", close: "Închide", quadrant: "Cadran", analysis: "Analiză", linkedReports: "Rapoarte asociate", openReport: "Deschide raportul", newPoint: "Punct nou de analiză", pointTitle: "Titlu", titlePlaceholder: "O observație strategică formulată concis", analysisPlaceholder: "Explică observația, relevanța și implicațiile acesteia…", chooseEvidence: "Selectează rapoarte ca dovezi", evidenceHint: "Asociază orice raport relevant din secțiunea Rapoarte.", search: "Caută rapoarte…", noReports: "Niciun raport găsit", selected: "selectate", cancel: "Anulează", save: "Adaugă punctul", saving: "Se salvează…", required: "Completează titlul și analiza înainte de salvare.", saveError: "Punctul de analiză nu a putut fi salvat. Încearcă din nou.", deleteBody: "Punctele de analiză selectate vor fi eliminate definitiv din analiza SWOT.", deleteConfirm: "Șterge punctele",
   },
 } as const;
 
@@ -25,6 +26,7 @@ export function SwotWorkspace({ token, language, reports, onOpenReport }: { toke
   const t = COPY[language];
   const remotePoints = useQuery(LIST_SWOT, { token });
   const savePoint = useMutation(SAVE_SWOT);
+  const removePoints = useMutation(REMOVE_SWOT);
   const points = useMemo(() => remotePoints ?? [], [remotePoints]);
   const [focused, setFocused] = useState<Quadrant | null>(null);
   const [view, setView] = useState<"list" | "grid">("list");
@@ -33,6 +35,9 @@ export function SwotWorkspace({ token, language, reports, onOpenReport }: { toke
   const [evidenceQuery, setEvidenceQuery] = useState("");
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<"required" | "save" | "">("");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const shownQuadrants = focused ? [focused] : QUADRANTS;
   const matchingReports = reports.filter((report) => `${report.title} ${report.project} ${report.platform} ${report.contentType}`.toLocaleLowerCase().includes(evidenceQuery.toLocaleLowerCase()));
@@ -60,8 +65,10 @@ export function SwotWorkspace({ token, language, reports, onOpenReport }: { toke
   return <section className="swot-workspace">
     <div className="swot-title-row"><div><h1>{t.title}</h1>{focused && <button className="swot-all" onClick={() => setFocused(null)}>← {t.all}</button>}</div><div className="swot-actions">
       <div className="view-switch"><button aria-label={t.list} className={view === "list" ? "active" : ""} onClick={() => setView("list")}>☷</button><button aria-label={t.grid} className={view === "grid" ? "active" : ""} onClick={() => setView("grid")}>▦</button></div>
+      <button className={`tool-button ${selectMode ? "active" : ""}`} onClick={() => { setSelectMode(!selectMode); setSelected([]); }}>✓ <span>{selectMode ? t.done : t.select}</span></button>
       <button className="primary add" onClick={openNew}><b>＋</b> {t.add}</button>
     </div></div>
+    {selectMode && <div className="selection-bar swot-selection"><span><b>{selected.length}</b> {language === "ro" ? (selected.length === 1 ? "selectat" : "selectate") : t.selected}</span><button disabled={!selected.length} onClick={() => setConfirmDelete(true)}>{t.delete}</button></div>}
     {focused && <div className="quadrant-cycle"><button aria-label={t.previous} onClick={() => cycle(-1)}>←</button><strong>{quadrantLabel(focused)}</strong><button aria-label={t.next} onClick={() => cycle(1)}>→</button></div>}
     <div className={`swot-board ${focused ? "focused" : ""} ${view}`}>
       {shownQuadrants.map((quadrant) => {
@@ -69,7 +76,7 @@ export function SwotWorkspace({ token, language, reports, onOpenReport }: { toke
         return <section key={quadrant} className={`swot-quadrant ${quadrant}`}>
           <button className="quadrant-head" onClick={() => setFocused(quadrant)}><span><i />{quadrantLabel(quadrant)}</span><b>{quadrantPoints.length} {quadrantPoints.length === 1 ? t.point : t.points}</b><em>↗</em></button>
           <div className="swot-points">
-            {quadrantPoints.map((point) => <button key={point.id} className="swot-point" onClick={() => setActive(point)}><span className="point-icon">{point.title.slice(0, 1).toUpperCase()}</span><span className="point-copy"><strong>{point.title}</strong><small>{point.analysis}</small><em>{point.reportIds.length ? `${point.reportIds.length} ${point.reportIds.length === 1 ? t.evidenceOne : t.evidence}` : t.noEvidence}</em></span><b>→</b></button>)}
+            {quadrantPoints.map((point) => <button key={point.id} className={`swot-point ${selected.includes(point.id) ? "selected" : ""}`} onClick={() => selectMode ? setSelected((current) => current.includes(point.id) ? current.filter((id) => id !== point.id) : [...current, point.id]) : setActive(point)}>{selectMode && <span className="swot-select-dot">{selected.includes(point.id) ? "✓" : ""}</span>}<span className="point-icon">{point.title.slice(0, 1).toUpperCase()}</span><span className="point-copy"><strong>{point.title}</strong><small>{point.analysis}</small><em>{point.reportIds.length ? `${point.reportIds.length} ${point.reportIds.length === 1 ? t.evidenceOne : t.evidence}` : t.noEvidence}</em></span><b>→</b></button>)}
             {!quadrantPoints.length && <div className="swot-empty"><strong>{t.empty}</strong><span>{t.emptyHint}</span></div>}
           </div>
         </section>;
@@ -96,5 +103,6 @@ export function SwotWorkspace({ token, language, reports, onOpenReport }: { toke
         <div className="form-footer"><span>*</span><button type="button" className="secondary" onClick={() => setDraft(null)}>{t.cancel}</button><button type="submit" className="primary" disabled={saving}>{saving ? t.saving : t.save}</button></div>
       </form>
     </section></div>}
+    {confirmDelete && <div className="confirm-backdrop"><div className="confirm"><div className="danger-icon">×</div><h2>{language === "ro" ? `Ștergi ${selected.length} ${selected.length === 1 ? "punct" : "puncte"}?` : `Delete ${selected.length} point${selected.length === 1 ? "" : "s"}?`}</h2><p>{t.deleteBody}</p><div><button className="secondary" onClick={() => setConfirmDelete(false)}>{t.cancel}</button><button className="danger-button" onClick={async () => { await removePoints({ token, ids: selected }); setSelected([]); setConfirmDelete(false); }}>{t.deleteConfirm}</button></div></div></div>}
   </section>;
 }
