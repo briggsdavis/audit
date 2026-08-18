@@ -8,6 +8,9 @@ const reportFields = {
   project: v.string(),
   platform: v.string(),
   contentType: v.string(),
+  brandValue: v.optional(v.string()),
+  salesValue: v.optional(v.string()),
+  entertainmentValue: v.optional(v.string()),
   issue: v.string(),
   improvement: v.string(),
   url: v.string(),
@@ -45,6 +48,9 @@ export const list = queryGeneric({
       project: report.project,
       platform: report.platform,
       contentType: report.contentType,
+      brandValue: report.brandValue ?? "",
+      salesValue: report.salesValue ?? "",
+      entertainmentValue: report.entertainmentValue ?? "",
       issue: report.issue,
       improvement: report.improvement,
       url: report.url,
@@ -97,6 +103,7 @@ export const save = mutationGeneric({
     const value = {
       externalId: report.id,
       title: report.title.trim(), project: report.project, platform: report.platform, contentType,
+      brandValue: (report.brandValue ?? "").trim(), salesValue: (report.salesValue ?? "").trim(), entertainmentValue: (report.entertainmentValue ?? "").trim(),
       issue: report.issue.trim(), improvement: report.improvement.trim(), url: report.url.trim(),
       evidence: report.evidence, examples: report.examples, createdAt: report.createdAt, updatedAt: report.updatedAt, order: report.order,
     };
