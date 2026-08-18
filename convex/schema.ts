@@ -15,6 +15,7 @@ export default defineSchema({
     brandValue: v.optional(v.string()),
     salesValue: v.optional(v.string()),
     entertainmentValue: v.optional(v.string()),
+    grade: v.optional(v.union(v.number(), v.null())),
     issue: v.string(),
     improvement: v.string(),
     url: v.string(),

@@ -3,9 +3,9 @@ import "./globals.css";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 
 export const metadata: Metadata = {
-  title: "Alber Audit — Content reports",
+  title: "Alber Audit | Content reports",
   description: "A focused workspace for reviewing and improving content.",
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: "/alber.png", apple: "/alber.png" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

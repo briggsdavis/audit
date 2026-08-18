@@ -11,6 +11,7 @@ const reportFields = {
   brandValue: v.optional(v.string()),
   salesValue: v.optional(v.string()),
   entertainmentValue: v.optional(v.string()),
+  grade: v.optional(v.union(v.number(), v.null())),
   issue: v.string(),
   improvement: v.string(),
   url: v.string(),
@@ -51,6 +52,7 @@ export const list = queryGeneric({
       brandValue: report.brandValue ?? "",
       salesValue: report.salesValue ?? "",
       entertainmentValue: report.entertainmentValue ?? "",
+      grade: report.grade ?? null,
       issue: report.issue,
       improvement: report.improvement,
       url: report.url,
@@ -88,6 +90,7 @@ export const save = mutationGeneric({
   handler: async (ctx, { token, report }) => {
     await requireSession(ctx, token);
     if (!report.title.trim() || !report.issue.trim() || !report.improvement.trim()) throw new ConvexError("Required fields are missing");
+    if (report.grade !== undefined && report.grade !== null && (!Number.isInteger(report.grade) || report.grade < 1 || report.grade > 10)) throw new ConvexError("Grade must be a whole number from 1 to 10");
     if (!projects.has(report.project)) throw new ConvexError("Invalid project");
     let contentType = report.contentType.trim();
     if (report.platform === "Website") {
@@ -104,6 +107,7 @@ export const save = mutationGeneric({
       externalId: report.id,
       title: report.title.trim(), project: report.project, platform: report.platform, contentType,
       brandValue: (report.brandValue ?? "").trim(), salesValue: (report.salesValue ?? "").trim(), entertainmentValue: (report.entertainmentValue ?? "").trim(),
+      grade: report.grade ?? null,
       issue: report.issue.trim(), improvement: report.improvement.trim(), url: report.url.trim(),
       evidence: report.evidence, examples: report.examples, createdAt: report.createdAt, updatedAt: report.updatedAt, order: report.order,
     };
