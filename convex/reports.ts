@@ -71,19 +71,20 @@ export const listWebsiteContentTypes = queryGeneric({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
     await requireSession(ctx, token);
-    const [savedTypes, reports] = await Promise.all([
-      ctx.db.query("websiteContentTypes").collect(),
-      ctx.db.query("reports").collect(),
-    ]);
+    const savedTypes = await ctx.db.query("websiteContentTypes").collect();
     const byProject = new Map<string, { project: string; name: string }>();
     for (const item of savedTypes) byProject.set(`${item.project}:${item.normalizedName}`, { project: item.project, name: item.name });
-    for (const report of reports) {
-      if (report.platform !== "Website" || !report.contentType.trim()) continue;
-      const normalizedName = normalizeWebsiteContentType(report.contentType);
-      const key = `${report.project}:${normalizedName}`;
-      if (!byProject.has(key)) byProject.set(key, { project: report.project, name: report.contentType.trim() });
-    }
     return [...byProject.values()].sort((a, b) => a.project.localeCompare(b.project) || a.name.localeCompare(b.name));
+  },
+});
+
+export const removeWebsiteContentType = mutationGeneric({
+  args: { token: v.string(), project: v.string(), name: v.string() },
+  handler: async (ctx, { token, project, name }) => {
+    await requireSession(ctx, token);
+    const normalizedName = normalizeWebsiteContentType(name);
+    const item = await ctx.db.query("websiteContentTypes").filter((q) => q.and(q.eq(q.field("project"), project), q.eq(q.field("normalizedName"), normalizedName))).unique();
+    if (item) await ctx.db.delete(item._id);
   },
 });
 
