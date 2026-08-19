@@ -9,10 +9,11 @@ const reportFields = {
   platform: v.string(),
   contentType: v.string(),
   brandValue: v.optional(v.string()),
+  brandGrade: v.optional(v.union(v.number(), v.null())),
   salesValue: v.optional(v.string()),
+  salesGrade: v.optional(v.union(v.number(), v.null())),
   entertainmentValue: v.optional(v.string()),
-  grade: v.optional(v.union(v.number(), v.null())),
-  issue: v.string(),
+  entertainmentGrade: v.optional(v.union(v.number(), v.null())),
   improvement: v.string(),
   url: v.string(),
   evidence: v.array(v.id("_storage")),
@@ -50,10 +51,11 @@ export const list = queryGeneric({
       platform: report.platform,
       contentType: report.contentType,
       brandValue: report.brandValue ?? "",
+      brandGrade: report.brandGrade ?? null,
       salesValue: report.salesValue ?? "",
+      salesGrade: report.salesGrade ?? null,
       entertainmentValue: report.entertainmentValue ?? "",
-      grade: report.grade ?? null,
-      issue: report.issue,
+      entertainmentGrade: report.entertainmentGrade ?? null,
       improvement: report.improvement,
       url: report.url,
       evidence: await Promise.all(report.evidence.map(async (storageId: any) => ({ storageId, url: await ctx.storage.getUrl(storageId) ?? "" }))),
@@ -89,8 +91,10 @@ export const save = mutationGeneric({
   args: { token: v.string(), report: v.object(reportFields) },
   handler: async (ctx, { token, report }) => {
     await requireSession(ctx, token);
-    if (!report.title.trim() || !report.issue.trim() || !report.improvement.trim()) throw new ConvexError("Required fields are missing");
-    if (report.grade !== undefined && report.grade !== null && (!Number.isInteger(report.grade) || report.grade < 1 || report.grade > 10)) throw new ConvexError("Grade must be a whole number from 1 to 10");
+    if (!report.title.trim() || !report.improvement.trim()) throw new ConvexError("Required fields are missing");
+    for (const grade of [report.brandGrade, report.salesGrade, report.entertainmentGrade]) {
+      if (grade !== undefined && grade !== null && (!Number.isInteger(grade) || grade < 1 || grade > 10)) throw new ConvexError("Grades must be whole numbers from 1 to 10");
+    }
     if (!projects.has(report.project)) throw new ConvexError("Invalid project");
     let contentType = report.contentType.trim();
     if (report.platform === "Website") {
@@ -106,9 +110,10 @@ export const save = mutationGeneric({
     const value = {
       externalId: report.id,
       title: report.title.trim(), project: report.project, platform: report.platform, contentType,
-      brandValue: (report.brandValue ?? "").trim(), salesValue: (report.salesValue ?? "").trim(), entertainmentValue: (report.entertainmentValue ?? "").trim(),
-      grade: report.grade ?? null,
-      issue: report.issue.trim(), improvement: report.improvement.trim(), url: report.url.trim(),
+      brandValue: (report.brandValue ?? "").trim(), brandGrade: report.brandGrade ?? null,
+      salesValue: (report.salesValue ?? "").trim(), salesGrade: report.salesGrade ?? null,
+      entertainmentValue: (report.entertainmentValue ?? "").trim(), entertainmentGrade: report.entertainmentGrade ?? null,
+      improvement: report.improvement.trim(), url: report.url.trim(),
       evidence: report.evidence, examples: report.examples, createdAt: report.createdAt, updatedAt: report.updatedAt, order: report.order,
     };
     if (existing) {
