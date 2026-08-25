@@ -36,11 +36,12 @@ export default defineSchema({
   }).index("by_project_normalized_name", ["project", "normalizedName"]),
   swotPoints: defineTable({
     externalId: v.string(),
+    project: v.optional(v.string()),
     title: v.string(),
     analysis: v.string(),
     quadrant: v.union(v.literal("strength"), v.literal("weakness"), v.literal("opportunity"), v.literal("threat")),
     reportIds: v.array(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
-  }).index("by_external_id", ["externalId"]).index("by_quadrant", ["quadrant"]),
+  }).index("by_external_id", ["externalId"]).index("by_project", ["project"]).index("by_quadrant", ["quadrant"]),
 });

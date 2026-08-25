@@ -7,9 +7,9 @@ import { makeFunctionReference } from "convex/server";
 type Language = "en" | "ro";
 type Quadrant = "strength" | "weakness" | "opportunity" | "threat";
 type Report = { id: string; title: string; project: string; platform: string; contentType: string };
-type SwotPoint = { id: string; title: string; analysis: string; quadrant: Quadrant; reportIds: string[]; createdAt: number; updatedAt: number };
+type SwotPoint = { id: string; project: string; title: string; analysis: string; quadrant: Quadrant; reportIds: string[]; createdAt: number; updatedAt: number };
 
-const LIST_SWOT = makeFunctionReference<"query", { token: string }, SwotPoint[]>("swot:list");
+const LIST_SWOT = makeFunctionReference<"query", { token: string; project: string }, SwotPoint[]>("swot:list");
 const SAVE_SWOT = makeFunctionReference<"mutation", { token: string; point: SwotPoint }, void>("swot:save");
 const REMOVE_SWOT = makeFunctionReference<"mutation", { token: string; ids: string[] }, void>("swot:remove");
 const QUADRANTS: Quadrant[] = ["strength", "weakness", "opportunity", "threat"];
@@ -22,9 +22,9 @@ const COPY = {
   },
 } as const;
 
-export function SwotWorkspace({ token, language, reports, onOpenReport }: { token: string; language: Language; reports: Report[]; onOpenReport: (reportId: string) => void }) {
+export function SwotWorkspace({ token, language, project, reports, onOpenReport }: { token: string; language: Language; project: string; reports: Report[]; onOpenReport: (reportId: string) => void }) {
   const t = COPY[language];
-  const remotePoints = useQuery(LIST_SWOT, { token });
+  const remotePoints = useQuery(LIST_SWOT, { token, project });
   const savePoint = useMutation(SAVE_SWOT);
   const removePoints = useMutation(REMOVE_SWOT);
   const points = useMemo(() => remotePoints ?? [], [remotePoints]);
@@ -51,7 +51,7 @@ export function SwotWorkspace({ token, language, reports, onOpenReport }: { toke
   };
   const openNew = () => {
     const now = Date.now();
-    setDraft({ id: crypto.randomUUID(), title: "", analysis: "", quadrant: focused ?? "strength", reportIds: [], createdAt: now, updatedAt: now });
+    setDraft({ id: crypto.randomUUID(), project, title: "", analysis: "", quadrant: focused ?? "strength", reportIds: [], createdAt: now, updatedAt: now });
     setEvidenceQuery(""); setFormError("");
   };
   const submit = async () => {
@@ -63,7 +63,7 @@ export function SwotWorkspace({ token, language, reports, onOpenReport }: { toke
   };
 
   return <section className="swot-workspace">
-    <div className="swot-title-row"><div><h1>{t.title}</h1>{focused && <button className="swot-all" onClick={() => setFocused(null)}>← {t.all}</button>}</div><div className="swot-actions">
+    <div className="swot-title-row"><div><div><p className="eyebrow">{project}</p><h1>{t.title}</h1></div>{focused && <button className="swot-all" onClick={() => setFocused(null)}>← {t.all}</button>}</div><div className="swot-actions">
       <div className="view-switch"><button aria-label={t.list} className={view === "list" ? "active" : ""} onClick={() => setView("list")}>☷</button><button aria-label={t.grid} className={view === "grid" ? "active" : ""} onClick={() => setView("grid")}>▦</button></div>
       <button className={`tool-button ${selectMode ? "active" : ""}`} onClick={() => { setSelectMode(!selectMode); setSelected([]); }}>✓ <span>{selectMode ? t.done : t.select}</span></button>
       <button className="primary add" onClick={openNew}><b>＋</b> {t.add}</button>

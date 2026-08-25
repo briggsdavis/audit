@@ -60,13 +60,13 @@ const CONTENT_TYPES = ["Carousel", "Post", "Reel", "Video", "Image", "Text", "We
 const COPY = {
   en: {
     contentAudit: "Content audit", enterWorkspace: "Enter the workspace", loginCopy: "Use the shared passcode to review and organise your team’s content reports.", passcode: "Passcode", continue: "Continue", secureNote: "Access stays active for 30 days on this device", authError: "That passcode isn’t correct, or the workspace is not configured yet.",
-    logOut: "Log out", reports: "Reports", newReport: "New report", searchReports: "Search reports…", sortReports: "Sort reports", filter: "Filter", project: "Project", platform: "Platform", contentType: "Content type", valueComment: "Value comment", manualOrder: "Manual order", newestFirst: "Newest first", oldestFirst: "Oldest first", done: "Done", select: "Select", listView: "List view", gridView: "Grid view", clearAll: "Clear all", selected: "selected", delete: "Delete", reorderNote: "Clear search and filters to reorder reports.", updated: "Updated", open: "Open", noReportsFound: "No reports found", noReportsYet: "No reports yet", noReportsFiltered: "Try removing a filter or using a different search.", noReportsEmpty: "Create your first content audit report to get started.", createAReport: "Create a report",
+    logOut: "Log out", reports: "Reports", newReport: "New report", searchReports: "Search reports…", sortReports: "Sort reports", filter: "Filter", project: "Project", chooseProject: "Choose a project", chooseProjectHint: "Select the project workspace you want to open. Each project has its own reports and SWOT analysis.", switchProject: "Switch project", platform: "Platform", contentType: "Content type", valueComment: "Value comment", manualOrder: "Manual order", newestFirst: "Newest first", oldestFirst: "Oldest first", done: "Done", select: "Select", listView: "List view", gridView: "Grid view", clearAll: "Clear all", selected: "selected", delete: "Delete", reorderNote: "Clear search and filters to reorder reports.", updated: "Updated", open: "Open", noReportsFound: "No reports found", noReportsYet: "No reports yet", noReportsFiltered: "Try removing a filter or using a different search.", noReportsEmpty: "Create your first content audit report to get started.", createAReport: "Create a report",
     reportDetail: "Report detail", editReport: "Edit report", edit: "Edit", cancel: "Cancel", close: "Close", reportTitle: "Report title", titlePlaceholder: "A clear, concise description", sourceUrl: "Source URL", optional: "Optional", commentTopics: "Value comments", commentTopicsHint: "Add only the value categories that apply to this report.", addComment: "Add a value comment", removeComment: "Remove comment", grade: "Grade", gradeOutOfTen: "out of 10", brandValue: "Brand value", brandValuePlaceholder: "How does this content affect or express the brand?", salesValue: "Sales value", salesValuePlaceholder: "How does this content support sales or conversion?", entertainmentValue: "Entertainment value", entertainmentValuePlaceholder: "How engaging or entertaining is this content?", screenshots: "Screenshots", improvementLabel: "How to do this better", improvementPlaceholder: "Explain the recommended improvement…", exampleScreenshots: "Example screenshots", requiredFields: "Required fields", saving: "Saving…", saveChanges: "Save changes", createReport: "Create report", lastUpdated: "Last updated", openSource: "Open source", discardTitle: "Discard unsaved changes?", discardBody: "Your edits won’t be saved.", discardConfirm: "Discard changes", deleteBody: "This will remove the selected reports from the audit.", deleteReports: "Delete reports", saveError: "This report could not be saved. Please try again.", websiteTypePlaceholder: "e.g. Home, About, Contact", savedForProject: "Saved for this project", websiteTypeHint: "Enter a page or section name. It will be saved for this project when the report is saved.",
     optionalMultiple: "Optional · multiple allowed", uploading: "Uploading…", dropImages: "Drop images here", browseImages: "or click to browse · JPEG, PNG, WebP", uploadError: "One or more images could not be uploaded. Please try again.", removeImage: "Remove image",
   },
   ro: {
     contentAudit: "Audit de conținut", enterWorkspace: "Accesează spațiul de lucru", loginCopy: "Folosește codul de acces comun pentru a consulta și organiza rapoartele de conținut ale echipei.", passcode: "Cod de acces", continue: "Continuă", secureNote: "Accesul rămâne activ timp de 30 de zile pe acest dispozitiv", authError: "Codul de acces este incorect sau spațiul de lucru nu este încă configurat.",
-    logOut: "Deconectare", reports: "Rapoarte", newReport: "Raport nou", searchReports: "Caută în rapoarte…", sortReports: "Sortează rapoartele", filter: "Filtre", project: "Proiect", platform: "Platformă", contentType: "Tip de conținut", valueComment: "Comentariu de valoare", manualOrder: "Ordine manuală", newestFirst: "Cele mai noi", oldestFirst: "Cele mai vechi", done: "Gata", select: "Selectează", listView: "Vizualizare listă", gridView: "Vizualizare grilă", clearAll: "Elimină toate filtrele", selected: "selectate", delete: "Șterge", reorderNote: "Elimină căutarea și filtrele pentru a reordona rapoartele.", updated: "Actualizat", open: "Deschide", noReportsFound: "Niciun raport găsit", noReportsYet: "Nu există încă rapoarte", noReportsFiltered: "Încearcă să elimini un filtru sau să folosești altă căutare.", noReportsEmpty: "Creează primul raport de audit de conținut pentru a începe.", createAReport: "Creează un raport",
+    logOut: "Deconectare", reports: "Rapoarte", newReport: "Raport nou", searchReports: "Caută în rapoarte…", sortReports: "Sortează rapoartele", filter: "Filtre", project: "Proiect", chooseProject: "Alege un proiect", chooseProjectHint: "Selectează spațiul de lucru al proiectului pe care vrei să-l deschizi. Fiecare proiect are propriile rapoarte și propria analiză SWOT.", switchProject: "Schimbă proiectul", platform: "Platformă", contentType: "Tip de conținut", valueComment: "Comentariu de valoare", manualOrder: "Ordine manuală", newestFirst: "Cele mai noi", oldestFirst: "Cele mai vechi", done: "Gata", select: "Selectează", listView: "Vizualizare listă", gridView: "Vizualizare grilă", clearAll: "Elimină toate filtrele", selected: "selectate", delete: "Șterge", reorderNote: "Elimină căutarea și filtrele pentru a reordona rapoartele.", updated: "Actualizat", open: "Deschide", noReportsFound: "Niciun raport găsit", noReportsYet: "Nu există încă rapoarte", noReportsFiltered: "Încearcă să elimini un filtru sau să folosești altă căutare.", noReportsEmpty: "Creează primul raport de audit de conținut pentru a începe.", createAReport: "Creează un raport",
     reportDetail: "Detalii raport", editReport: "Editează raportul", edit: "Editează", cancel: "Anulează", close: "Închide", reportTitle: "Titlul raportului", titlePlaceholder: "O descriere clară și concisă", sourceUrl: "Adresa URL sursă", optional: "Opțional", commentTopics: "Comentarii de valoare", commentTopicsHint: "Adaugă doar categoriile de valoare relevante pentru acest raport.", addComment: "Adaugă un comentariu de valoare", removeComment: "Elimină comentariul", grade: "Notă", gradeOutOfTen: "din 10", brandValue: "Valoare de brand", brandValuePlaceholder: "Cum influențează sau exprimă acest conținut brandul?", salesValue: "Valoare de vânzări", salesValuePlaceholder: "Cum susține acest conținut vânzările sau conversia?", entertainmentValue: "Valoare de divertisment", entertainmentValuePlaceholder: "Cât de captivant sau distractiv este acest conținut?", screenshots: "Capturi de ecran", improvementLabel: "Cum poate fi îmbunătățit", improvementPlaceholder: "Descrie îmbunătățirea recomandată…", exampleScreenshots: "Capturi de ecran de referință", requiredFields: "Câmpuri obligatorii", saving: "Se salvează…", saveChanges: "Salvează modificările", createReport: "Creează raportul", lastUpdated: "Ultima actualizare", openSource: "Deschide sursa", discardTitle: "Renunți la modificările nesalvate?", discardBody: "Modificările efectuate nu vor fi salvate.", discardConfirm: "Renunță la modificări", deleteBody: "Rapoartele selectate vor fi eliminate din audit.", deleteReports: "Șterge rapoartele", saveError: "Raportul nu a putut fi salvat. Încearcă din nou.", websiteTypePlaceholder: "de ex. Acasă, Despre noi, Contact", savedForProject: "Salvate pentru acest proiect", websiteTypeHint: "Introdu numele unei pagini sau secțiuni. Acesta va fi salvat pentru proiect atunci când salvezi raportul.",
     optionalMultiple: "Opțional · poți adăuga mai multe", uploading: "Se încarcă…", dropImages: "Trage imaginile aici", browseImages: "sau fă clic pentru a le selecta · JPEG, PNG, WebP", uploadError: "Una sau mai multe imagini nu au putut fi încărcate. Încearcă din nou.", removeImage: "Elimină imaginea",
   },
@@ -168,13 +168,14 @@ function DropZone({ label, images, token, language, onChange }: { label: string;
 export default function Home() {
   const [language, setLanguage] = useState<Language>("en");
   const [section, setSection] = useState<"reports" | "swot">("reports");
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [sessionToken, setSessionToken] = useState<string | null | undefined>(undefined);
   const [passcode, setPasscode] = useState("");
   const [authError, setAuthError] = useState(false);
   const [view, setView] = useState<"list" | "grid">("list");
   const [sort, setSort] = useState("manual");
   const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState<{ project: Project[]; platform: Platform[]; contentType: string[]; valueType: ValueType[] }>({ project: [], platform: [], contentType: [], valueType: [] });
+  const [filters, setFilters] = useState<{ platform: Platform[]; contentType: string[]; valueType: ValueType[] }>({ platform: [], contentType: [], valueType: [] });
   const [filterOpen, setFilterOpen] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [selectMode, setSelectMode] = useState(false);
@@ -199,6 +200,7 @@ export default function Home() {
   const remoteReports = useQuery(LIST_REPORTS, typeof sessionToken === "string" && sessionValid ? { token: sessionToken } : "skip");
   const remoteWebsiteContentTypes = useQuery(LIST_WEBSITE_CONTENT_TYPES, typeof sessionToken === "string" && sessionValid ? { token: sessionToken } : "skip");
   const reports = useMemo(() => remoteReports ?? [], [remoteReports]);
+  const projectReports = useMemo(() => activeProject ? reports.filter((report) => report.project === activeProject) : [], [activeProject, reports]);
   const authenticated = sessionToken === undefined ? null : sessionToken === null ? false : sessionValid === undefined ? null : sessionValid;
   const t = COPY[language];
 
@@ -234,30 +236,28 @@ export default function Home() {
   }, [filterOpen]);
 
   const visible = useMemo(() => {
-    const filtered = reports.filter((r) => r.title.toLowerCase().includes(query.toLowerCase())
-      && (!filters.project.length || filters.project.includes(r.project))
+    const filtered = projectReports.filter((r) => r.title.toLowerCase().includes(query.toLowerCase())
       && (!filters.platform.length || filters.platform.includes(r.platform))
       && (!filters.contentType.length || filters.contentType.includes(r.contentType))
       && (!filters.valueType.length || filters.valueType.every((type) => valueTypesFor(r).includes(type))));
     return [...filtered].sort((a, b) => {
       if (sort === "newest") return b.createdAt - a.createdAt;
       if (sort === "oldest") return a.createdAt - b.createdAt;
-      if (sort === "project") return a.project.localeCompare(b.project);
       if (sort === "platform") return a.platform.localeCompare(b.platform);
       if (sort === "content") return a.contentType.localeCompare(b.contentType);
       return a.order - b.order;
     });
-  }, [reports, query, filters, sort]);
+  }, [projectReports, query, filters, sort]);
   const websiteTypesForDraft = useMemo(() => {
     if (!draft) return [];
     return (remoteWebsiteContentTypes ?? []).filter((item) => item.project === draft.project).map((item) => item.name);
   }, [draft, remoteWebsiteContentTypes]);
   const availableContentTypes = useMemo(() => Array.from(new Set([
     ...CONTENT_TYPES,
-    ...reports.map((report) => report.contentType),
-    ...(remoteWebsiteContentTypes ?? []).map((item) => item.name),
-  ])), [reports, remoteWebsiteContentTypes]);
-  const hasFilters = !!(query || filters.project.length || filters.platform.length || filters.contentType.length);
+    ...projectReports.map((report) => report.contentType),
+    ...(remoteWebsiteContentTypes ?? []).filter((item) => item.project === activeProject).map((item) => item.name),
+  ])), [activeProject, projectReports, remoteWebsiteContentTypes]);
+  const hasFilters = !!(query || filters.platform.length || filters.contentType.length || filters.valueType.length);
 
   async function signIn(e: React.FormEvent) {
     e.preventDefault(); setAuthError(false);
@@ -269,7 +269,8 @@ export default function Home() {
     } catch { setAuthError(true); }
   }
   function openNew() {
-    const now = Date.now(); const report: Report = { ...EMPTY, id: crypto.randomUUID(), createdAt: now, updatedAt: now, order: reports.length };
+    if (!activeProject) return;
+    const now = Date.now(); const report: Report = { ...EMPTY, project: activeProject, id: crypto.randomUUID(), createdAt: now, updatedAt: now, order: projectReports.length };
     setModalClosing(false);
     setActive(report); setDraft(report); setActiveValueTypes([]); setEditing(true);
   }
@@ -307,7 +308,7 @@ export default function Home() {
   }
   async function reorder(targetId: string) {
     if (!sessionToken || !dragId.current || dragId.current === targetId || sort !== "manual" || hasFilters) return;
-    const ordered = [...reports].sort((a, b) => a.order - b.order); const to = ordered.findIndex((r) => r.id === targetId);
+    const ordered = [...projectReports].sort((a, b) => a.order - b.order); const to = ordered.findIndex((r) => r.id === targetId);
     const movingIds = selected.includes(dragId.current) ? selected : [dragId.current]; const moving = ordered.filter((r) => movingIds.includes(r.id)); const rest = ordered.filter((r) => !movingIds.includes(r.id));
     const insert = Math.max(0, rest.findIndex((r) => r.id === ordered[to]?.id)); rest.splice(insert, 0, ...moving);
     await reorderReports({ token: sessionToken, ids: rest.map((r) => r.id) }); dragId.current = null;
@@ -320,6 +321,16 @@ export default function Home() {
     setSection(next);
     localStorage.setItem("audit-section", next);
   }
+  function chooseProject(project: Project) {
+    setActiveProject(project);
+    setFilters({ platform: [], contentType: [], valueType: [] });
+    setQuery("");
+    setSelected([]);
+    setSelectMode(false);
+    setFilterOpen(false);
+    setActive(null);
+    setDraft(null);
+  }
 
   if (authenticated === null) return <main className="auth-shell"><div className="loader" /></main>;
   if (!authenticated) return <main className="auth-shell"><div className="auth-language"><LanguageToggle language={language} onChange={changeLanguage} /></div><section className="login-card">
@@ -329,27 +340,31 @@ export default function Home() {
     <p className="secure-note"><i /> {t.secureNote}</p>
   </section></main>;
 
+  if (!activeProject) return <main className="project-gate"><div className="auth-language"><LanguageToggle language={language} onChange={changeLanguage} /></div><section className="project-gate-card">
+    <img className="brand-mark logo-image" src="/alber.png" alt="Alber" /><p className="eyebrow">Alber Audit</p><h1>{t.chooseProject}</h1><p>{t.chooseProjectHint}</p>
+    <div className="project-gate-options">{PROJECTS.map((project) => <button key={project} onClick={() => chooseProject(project)}><ProjectLogo project={project} /><span>{project}</span><b>→</b></button>)}</div>
+  </section></main>;
+
   return <main className="app-shell">
-    <header><div><img className="brand-mark small logo-image" src="/alber.png" alt="Alber" /><span className="wordmark">Alber Audit</span></div><nav className="section-toggle" aria-label="Workspace"><button className={section === "reports" ? "active" : ""} onClick={() => changeSection("reports")}>{t.reports}</button><button className={section === "swot" ? "active" : ""} onClick={() => changeSection("swot")}>SWOT</button></nav><div className="header-actions"><LanguageToggle language={language} onChange={changeLanguage} /><button className="ghost" onClick={async () => { if (sessionToken) await signOutSession({ token: sessionToken }); localStorage.removeItem("audit-session"); setSessionToken(null); }}>{t.logOut}</button></div></header>
+    <header><div><img className="brand-mark small logo-image" src="/alber.png" alt="Alber" /><span className="wordmark">Alber Audit</span><label className="project-switcher"><span>{t.project}</span><select aria-label={t.switchProject} value={activeProject} onChange={(event) => chooseProject(event.target.value as Project)}>{PROJECTS.map((project) => <option key={project} value={project}>{project}</option>)}</select></label></div><nav className="section-toggle" aria-label="Workspace"><button className={section === "reports" ? "active" : ""} onClick={() => changeSection("reports")}>{t.reports}</button><button className={section === "swot" ? "active" : ""} onClick={() => changeSection("swot")}>SWOT</button></nav><div className="header-actions"><LanguageToggle language={language} onChange={changeLanguage} /><button className="ghost" onClick={async () => { if (sessionToken) await signOutSession({ token: sessionToken }); localStorage.removeItem("audit-session"); setActiveProject(null); setSessionToken(null); }}>{t.logOut}</button></div></header>
     <section className="workspace" hidden={section !== "reports"}>
-      <div className="title-row"><h1>{t.reports} <span>{reports.length}</span></h1><button className="primary add" onClick={openNew}><b>＋</b> {t.newReport}</button></div>
+      <div className="title-row"><div><p className="eyebrow">{activeProject}</p><h1>{t.reports} <span>{projectReports.length}</span></h1></div><button className="primary add" onClick={openNew}><b>＋</b> {t.newReport}</button></div>
       <div className="toolbar">
         <div className="search"><span>⌕</span><input aria-label={t.searchReports} placeholder={t.searchReports} value={query} onChange={(e) => setQuery(e.target.value)} /></div>
         <div className="toolbar-actions">
           <div className="filter-wrap" ref={filterRef}><button aria-expanded={filterOpen} className={`tool-button ${filterOpen ? "active" : ""}`} onClick={() => setFilterOpen(!filterOpen)}>≡ <span>{t.filter}</span>{Object.values(filters).flat().length > 0 && <b>{Object.values(filters).flat().length}</b>}</button>
             {filterOpen && <div className="filter-menu">
-              <FilterGroup title={t.project} values={PROJECTS} active={filters.project} toggle={(v) => toggleFilter("project", v)} />
               <FilterGroup title={t.platform} values={PLATFORMS} active={filters.platform} toggle={(v) => toggleFilter("platform", v)} formatValue={(v) => PLATFORM_LABELS[language][v as Platform]} />
               <FilterGroup title={t.contentType} values={availableContentTypes} active={filters.contentType} toggle={(v) => toggleFilter("contentType", v)} formatValue={(v) => CONTENT_TYPE_LABELS[language][v] ?? v} />
               <FilterGroup title={t.valueComment} values={VALUE_TYPES} active={filters.valueType} toggle={(v) => toggleFilter("valueType", v)} formatValue={(v) => v === "brand" ? t.brandValue : v === "sales" ? t.salesValue : t.entertainmentValue} />
             </div>}
           </div>
-          <select aria-label={t.sortReports} value={sort} onChange={(e) => setSort(e.target.value)}><option value="manual">{t.manualOrder}</option><option value="newest">{t.newestFirst}</option><option value="oldest">{t.oldestFirst}</option><option value="project">{t.project}</option><option value="platform">{t.platform}</option><option value="content">{t.contentType}</option></select>
+          <select aria-label={t.sortReports} value={sort} onChange={(e) => setSort(e.target.value)}><option value="manual">{t.manualOrder}</option><option value="newest">{t.newestFirst}</option><option value="oldest">{t.oldestFirst}</option><option value="platform">{t.platform}</option><option value="content">{t.contentType}</option></select>
           <button className={`tool-button ${selectMode ? "active" : ""}`} onClick={() => { setSelectMode(!selectMode); setSelected([]); }}>✓ <span>{selectMode ? t.done : t.select}</span></button>
           <div className="view-switch"><button aria-label={t.listView} className={view === "list" ? "active" : ""} onClick={() => setView("list")}>☷</button><button aria-label={t.gridView} className={view === "grid" ? "active" : ""} onClick={() => setView("grid")}>▦</button></div>
         </div>
       </div>
-      {Object.values(filters).flat().length > 0 && <div className="chips">{(Object.entries(filters) as [keyof typeof filters, string[]][]).flatMap(([group, values]) => values.map((value) => <button key={group + value} className={`chip ${group}`} onClick={() => toggleFilter(group, value)}>{group === "platform" ? PLATFORM_LABELS[language][value as Platform] : group === "contentType" ? CONTENT_TYPE_LABELS[language][value] ?? value : group === "valueType" ? value === "brand" ? t.brandValue : value === "sales" ? t.salesValue : t.entertainmentValue : value} ×</button>))}<button className="clear" onClick={() => setFilters({ project: [], platform: [], contentType: [], valueType: [] })}>{t.clearAll}</button></div>}
+      {Object.values(filters).flat().length > 0 && <div className="chips">{(Object.entries(filters) as [keyof typeof filters, string[]][]).flatMap(([group, values]) => values.map((value) => <button key={group + value} className={`chip ${group}`} onClick={() => toggleFilter(group, value)}>{group === "platform" ? PLATFORM_LABELS[language][value as Platform] : group === "contentType" ? CONTENT_TYPE_LABELS[language][value] ?? value : value === "brand" ? t.brandValue : value === "sales" ? t.salesValue : t.entertainmentValue} ×</button>))}<button className="clear" onClick={() => setFilters({ platform: [], contentType: [], valueType: [] })}>{t.clearAll}</button></div>}
       {selectMode && <div className="selection-bar"><span><b>{selected.length}</b> {language === "ro" ? (selected.length === 1 ? "selectat" : "selectate") : t.selected}</span><button disabled={!selected.length} onClick={() => setConfirmDelete(true)}>{t.delete}</button></div>}
       {sort === "manual" && hasFilters && <p className="reorder-note">{t.reorderNote}</p>}
       <div className={`report-collection ${view}`}>
@@ -360,16 +375,16 @@ export default function Home() {
           <div className="report-main"><div className="meta"><span className={`platform ${report.platform.toLowerCase()}`}>{PLATFORM_LABELS[language][report.platform]}</span><i /> <span>{CONTENT_TYPE_LABELS[language][report.contentType] ?? report.contentType}</span></div><h2>{report.title}</h2>{!!reportValueTypes.length && <div className="report-value-badges">{reportValueTypes.map((type) => { const grade = type === "brand" ? report.brandGrade : type === "sales" ? report.salesGrade : report.entertainmentGrade; const label = type === "brand" ? t.brandValue : type === "sales" ? t.salesValue : t.entertainmentValue; return <span key={type} className={type}><ValueIcon type={type} />{label}{grade !== null && <b>{grade}/10</b>}</span>; })}</div>}<p>{report.brandValue || report.salesValue || report.entertainmentValue || report.improvement}</p></div>
           <div className="project"><div className="project-identity"><ProjectLogo project={report.project} /><span>{report.project}</span></div><small>{t.updated} {new Date(report.updatedAt).toLocaleDateString(language === "ro" ? "ro-RO" : "en-GB", { day: "numeric", month: "short" })}</small></div><button className="expand" aria-label={`${t.open} ${report.title}`}>↗</button><span className="number">{String(index + 1).padStart(2, "0")}</span>
         </article>; })}
-        {!visible.length && <div className="empty"><span>⌕</span><h2>{reports.length ? t.noReportsFound : t.noReportsYet}</h2><p>{reports.length ? t.noReportsFiltered : t.noReportsEmpty}</p>{!reports.length && <button className="secondary" onClick={openNew}>{t.createAReport}</button>}</div>}
+        {!visible.length && <div className="empty"><span>⌕</span><h2>{projectReports.length ? t.noReportsFound : t.noReportsYet}</h2><p>{projectReports.length ? t.noReportsFiltered : t.noReportsEmpty}</p>{!projectReports.length && <button className="secondary" onClick={openNew}>{t.createAReport}</button>}</div>}
       </div>
     </section>
-    {section === "swot" && sessionToken && <SwotWorkspace token={sessionToken} language={language} reports={reports} onOpenReport={(reportId) => { const report = reports.find((item) => item.id === reportId); if (report) { changeSection("reports"); openReport(report); } }} />}
+    {section === "swot" && sessionToken && <SwotWorkspace key={activeProject} token={sessionToken} language={language} project={activeProject} reports={projectReports} onOpenReport={(reportId) => { const report = projectReports.find((item) => item.id === reportId); if (report) { changeSection("reports"); openReport(report); } }} />}
 
     {active && draft && <div className={`modal-backdrop ${modalClosing ? "closing" : ""}`} onMouseDown={(e) => e.target === e.currentTarget && closeModal()}><section className="modal" role="dialog" aria-modal="true">
       <div className="modal-head"><div><p className="eyebrow">{reports.some((r) => r.id === active.id) ? t.reportDetail : t.newReport}</p><h2>{editing ? (reports.some((r) => r.id === active.id) ? t.editReport : t.createAReport) : active.title}</h2></div><div>{!editing && <button className="secondary" onClick={() => { setActiveValueTypes(valueTypesFor(active)); setEditing(true); }}>{t.edit}</button>}{editing && reports.some((r) => r.id === active.id) && <button className="secondary" onClick={() => { setDraft({ ...active }); setActiveValueTypes(valueTypesFor(active)); setEditing(false); }}>{t.cancel}</button>}<button className="close" aria-label={t.close} onClick={closeModal}>×</button></div></div>
       {editing ? <form className="report-form" onSubmit={(e) => { e.preventDefault(); save(); }}>
         <div className="form-grid"><div className="wide"><label className="field-label">{t.reportTitle} *</label><input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder={t.titlePlaceholder} required /></div>
-          <div className="wide"><label className="field-label">{t.project} *</label><div className="project-choice-row">{PROJECTS.map((project) => <button type="button" key={project} className={draft.project === project ? "selected" : ""} onClick={() => setDraft({ ...draft, project, contentType: draft.platform === "Website" ? "" : draft.contentType })}><ProjectLogo project={project} /><span>{project}</span></button>)}</div></div>
+          <div className="wide"><label className="field-label">{t.project}</label><div className="form-project-context"><ProjectLogo project={draft.project} /><strong>{draft.project}</strong></div></div>
           <div><label className="field-label">{t.sourceUrl} <span>{t.optional}</span></label><input type="url" value={draft.url} onChange={(e) => setDraft({ ...draft, url: e.target.value })} placeholder="https://" /></div></div>
         <fieldset><legend>{t.platform} *</legend><div className="choice-row">{PLATFORMS.map((p) => <button key={p} type="button" className={draft.platform === p ? "selected" : ""} onClick={() => { if (draft.platform !== p) setDraft({ ...draft, platform: p, contentType: p === "Website" ? "" : TYPES[p][0] }); }}>{PLATFORM_LABELS[language][p]}</button>)}</div></fieldset>
         <fieldset><legend>{t.contentType} *</legend>{draft.platform === "Website" ? <div className="website-type-editor">
