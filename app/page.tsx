@@ -367,7 +367,7 @@ export default function Home() {
               <FilterGroup title={t.valueComment} values={VALUE_TYPES} active={filters.valueType} toggle={(v) => toggleFilter("valueType", v)} formatValue={(v) => v === "brand" ? t.brandValue : v === "sales" ? t.salesValue : t.entertainmentValue} />
             </div>}
           </div>
-          <select aria-label={t.sortReports} value={sort} onChange={(e) => setSort(e.target.value)}><option value="manual">{t.manualOrder}</option><option value="newest">{t.newestFirst}</option><option value="oldest">{t.oldestFirst}</option><option value="platform">{t.platform}</option><option value="content">{t.contentType}</option></select>
+          <SortMenu label={t.sortReports} value={sort} onChange={setSort} options={[{ value: "manual", label: t.manualOrder }, { value: "newest", label: t.newestFirst }, { value: "oldest", label: t.oldestFirst }, { value: "platform", label: t.platform }, { value: "content", label: t.contentType }]} />
           <button className={`tool-button ${selectMode ? "active" : ""}`} onClick={() => { setSelectMode(!selectMode); setSelected([]); }}>✓ <span>{selectMode ? t.done : t.select}</span></button>
           <div className="view-switch"><button aria-label={t.listView} className={view === "list" ? "active" : ""} onClick={() => setView("list")}>☷</button><button aria-label={t.gridView} className={view === "grid" ? "active" : ""} onClick={() => setView("grid")}>▦</button></div>
         </div>
@@ -422,6 +422,23 @@ export default function Home() {
 
 function LanguageToggle({ language, onChange }: { language: Language; onChange: (language: Language) => void }) {
   return <div className="language-toggle" aria-label="Language / Limbă"><button className={language === "en" ? "active" : ""} aria-pressed={language === "en"} onClick={() => onChange("en")}>EN</button><button className={language === "ro" ? "active" : ""} aria-pressed={language === "ro"} onClick={() => onChange("ro")}>RO</button></div>;
+}
+function SortMenu({ label, value, options, onChange }: { label: string; value: string; options: { value: string; label: string }[]; onChange: (value: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: PointerEvent) => { if (!menuRef.current?.contains(event.target as Node)) setOpen(false); };
+    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); };
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", escape);
+    return () => { document.removeEventListener("pointerdown", close); document.removeEventListener("keydown", escape); };
+  }, [open]);
+  const selected = options.find((option) => option.value === value) ?? options[0];
+  return <div className="sort-menu" ref={menuRef}>
+    <button className="sort-menu-trigger" aria-label={label} aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((current) => !current)}><span>{selected.label}</span><b>⌄</b></button>
+    {open && <div className="sort-menu-options" role="listbox" aria-label={label}>{options.map((option) => <button key={option.value} role="option" aria-selected={option.value === value} className={option.value === value ? "active" : ""} onClick={() => { onChange(option.value); setOpen(false); }}><span>{option.label}</span>{option.value === value && <b>✓</b>}</button>)}</div>}
+  </div>;
 }
 function ProjectLogo({ project }: { project: Project }) {
   const logo = PROJECT_LOGOS[project];
