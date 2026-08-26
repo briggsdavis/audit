@@ -23,7 +23,8 @@ const reportFields = {
   order: v.number(),
 };
 
-const projects = new Set(["City of Mara", "Nord1", "Vivalia", "Via Project"]);
+const projects = new Set(["City of Mara", "NordOne", "Nord1", "Vivalia", "Via Project"]);
+const publicProjectName = (project: string) => project === "Nord1" ? "NordOne" : project;
 const contentTypes: Record<string, Set<string>> = {
   Instagram: new Set(["Carousel", "Post", "Reel"]),
   TikTok: new Set(["Carousel", "Video"]),
@@ -47,7 +48,7 @@ export const list = queryGeneric({
     return Promise.all(reports.map(async (report) => ({
       id: report.externalId,
       title: report.title,
-      project: report.project,
+      project: publicProjectName(report.project),
       platform: report.platform,
       contentType: report.contentType,
       brandValue: report.brandValue ?? "",
@@ -73,7 +74,7 @@ export const listWebsiteContentTypes = queryGeneric({
     await requireSession(ctx, token);
     const savedTypes = await ctx.db.query("websiteContentTypes").collect();
     const byProject = new Map<string, { project: string; name: string }>();
-    for (const item of savedTypes) byProject.set(`${item.project}:${item.normalizedName}`, { project: item.project, name: item.name });
+    for (const item of savedTypes) byProject.set(`${publicProjectName(item.project)}:${item.normalizedName}`, { project: publicProjectName(item.project), name: item.name });
     return [...byProject.values()].sort((a, b) => a.project.localeCompare(b.project) || a.name.localeCompare(b.name));
   },
 });
@@ -83,8 +84,10 @@ export const removeWebsiteContentType = mutationGeneric({
   handler: async (ctx, { token, project, name }) => {
     await requireSession(ctx, token);
     const normalizedName = normalizeWebsiteContentType(name);
-    const item = await ctx.db.query("websiteContentTypes").filter((q) => q.and(q.eq(q.field("project"), project), q.eq(q.field("normalizedName"), normalizedName))).unique();
-    if (item) await ctx.db.delete(item._id);
+    const items = await ctx.db.query("websiteContentTypes").collect();
+    for (const item of items) {
+      if (publicProjectName(item.project) === publicProjectName(project) && item.normalizedName === normalizedName) await ctx.db.delete(item._id);
+    }
   },
 });
 
@@ -101,7 +104,8 @@ export const save = mutationGeneric({
     if (report.platform === "Website") {
       if (!contentType || contentType.length > 80) throw new ConvexError("A valid website content type is required");
       const normalizedName = normalizeWebsiteContentType(contentType);
-      const savedType = await ctx.db.query("websiteContentTypes").filter((q) => q.and(q.eq(q.field("project"), report.project), q.eq(q.field("normalizedName"), normalizedName))).unique();
+      const savedTypes = await ctx.db.query("websiteContentTypes").collect();
+      const savedType = savedTypes.find((item) => publicProjectName(item.project) === publicProjectName(report.project) && item.normalizedName === normalizedName);
       if (savedType) contentType = savedType.name;
       else await ctx.db.insert("websiteContentTypes", { project: report.project, name: contentType, normalizedName, createdAt: Date.now() });
     } else if (!contentTypes[report.platform]?.has(contentType)) {
