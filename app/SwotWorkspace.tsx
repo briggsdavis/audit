@@ -34,6 +34,8 @@ export function SwotWorkspace({ token, language, project, reports, onOpenReport 
   const [draft, setDraft] = useState<SwotPoint | null>(null);
   const [evidenceQuery, setEvidenceQuery] = useState("");
   const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [closingModal, setClosingModal] = useState<"active" | "draft" | null>(null);
   const [formError, setFormError] = useState<"required" | "save" | "">("");
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
@@ -52,12 +54,24 @@ export function SwotWorkspace({ token, language, project, reports, onOpenReport 
   const openNew = () => {
     const now = Date.now();
     setDraft({ id: crypto.randomUUID(), project, title: "", analysis: "", quadrant: focused ?? "strength", reportIds: [], createdAt: now, updatedAt: now });
-    setEvidenceQuery(""); setFormError("");
+    setEvidenceQuery(""); setFormError(""); setSaveSuccess(false); setClosingModal(null);
+  };
+  const closeModal = (target: "active" | "draft") => {
+    if (closingModal) return;
+    setClosingModal(target);
+    window.setTimeout(() => {
+      if (target === "active") setActive(null); else setDraft(null);
+      setClosingModal(null);
+    }, 220);
   };
   const submit = async () => {
     if (!draft?.title.trim() || !draft.analysis.trim()) { setFormError("required"); return; }
     setSaving(true); setFormError("");
-    try { await savePoint({ token, point: { ...draft, updatedAt: Date.now() } }); setDraft(null); }
+    try {
+      await savePoint({ token, point: { ...draft, updatedAt: Date.now() } });
+      setSaving(false); setSaveSuccess(true);
+      window.setTimeout(() => { setSaveSuccess(false); closeModal("draft"); }, 560);
+    }
     catch { setFormError("save"); }
     finally { setSaving(false); }
   };
@@ -68,9 +82,9 @@ export function SwotWorkspace({ token, language, project, reports, onOpenReport 
       <button className={`tool-button ${selectMode ? "active" : ""}`} onClick={() => { setSelectMode(!selectMode); setSelected([]); }}>✓ <span>{selectMode ? t.done : t.select}</span></button>
       <button className="primary add" onClick={openNew}><b>＋</b> {t.add}</button>
     </div></div>
-    {selectMode && <div className="selection-bar swot-selection"><span><b>{selected.length}</b> {language === "ro" ? (selected.length === 1 ? "selectat" : "selectate") : t.selected}</span><button disabled={!selected.length} onClick={() => setConfirmDelete(true)}>{t.delete}</button></div>}
+    {selectMode && <div className="selection-bar swot-selection"><span><b key={selected.length}>{selected.length}</b> {language === "ro" ? (selected.length === 1 ? "selectat" : "selectate") : t.selected}</span><button disabled={!selected.length} onClick={() => setConfirmDelete(true)}>{t.delete}</button></div>}
     {focused && <div className="quadrant-cycle"><button aria-label={t.previous} onClick={() => cycle(-1)}>←</button><strong>{quadrantLabel(focused)}</strong><button aria-label={t.next} onClick={() => cycle(1)}>→</button></div>}
-    <div className={`swot-board ${focused ? "focused" : ""} ${view}`}>
+    <div key={`${focused ?? "all"}-${view}`} className={`swot-board ${focused ? "focused" : ""} ${view}`}>
       {shownQuadrants.map((quadrant) => {
         const quadrantPoints = points.filter((point) => point.quadrant === quadrant).sort((a, b) => b.updatedAt - a.updatedAt);
         return <section key={quadrant} className={`swot-quadrant ${quadrant}`}>
@@ -83,15 +97,15 @@ export function SwotWorkspace({ token, language, project, reports, onOpenReport 
       })}
     </div>
 
-    {active && <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && setActive(null)}><section className="modal swot-detail-modal" role="dialog" aria-modal="true">
-      <div className="modal-head"><div><p className="eyebrow">{t.detail}</p><h2>{active.title}</h2></div><button className="close" aria-label={t.close} onClick={() => setActive(null)}>×</button></div>
+    {active && <div className={`modal-backdrop ${closingModal === "active" ? "closing" : ""}`} onMouseDown={(event) => event.target === event.currentTarget && closeModal("active")}><section className="modal swot-detail-modal" role="dialog" aria-modal="true">
+      <div className="modal-head"><div><p className="eyebrow">{t.detail}</p><h2>{active.title}</h2></div><button className="close" aria-label={t.close} onClick={() => closeModal("active")}>×</button></div>
       <div className="swot-detail"><div className={`swot-detail-tag ${active.quadrant}`}><i />{quadrantLabel(active.quadrant)}</div><div className="detail-block"><label>{t.analysis}</label><p>{active.analysis}</p></div><div className="swot-evidence-detail"><label>{t.linkedReports}</label>
         {active.reportIds.length ? active.reportIds.map((reportId) => { const report = reports.find((item) => item.id === reportId); return report ? <button key={reportId} onClick={() => onOpenReport(reportId)}><span><strong>{report.title}</strong><small>{report.project} · {platformLabel(report.platform)} · {contentTypeLabel(report.contentType)}</small></span><b>{t.openReport} ↗</b></button> : null; }) : <p>{t.noEvidence}</p>}
       </div></div>
     </section></div>}
 
-    {draft && <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && setDraft(null)}><section className="modal swot-form-modal" role="dialog" aria-modal="true">
-      <div className="modal-head"><div><p className="eyebrow">SWOT</p><h2>{t.newPoint}</h2></div><button className="close" aria-label={t.close} onClick={() => setDraft(null)}>×</button></div>
+    {draft && <div className={`modal-backdrop ${closingModal === "draft" ? "closing" : ""}`} onMouseDown={(event) => event.target === event.currentTarget && closeModal("draft")}><section className="modal swot-form-modal" role="dialog" aria-modal="true">
+      <div className="modal-head"><div><p className="eyebrow">SWOT</p><h2>{t.newPoint}</h2></div><button className="close" aria-label={t.close} onClick={() => closeModal("draft")}>×</button></div>
       <form className="swot-form" onSubmit={(event) => { event.preventDefault(); submit(); }}>
         <div><label className="field-label">{t.quadrant} *</label><div className="swot-quadrant-choices">{QUADRANTS.map((quadrant) => <button type="button" key={quadrant} className={`${quadrant} ${draft.quadrant === quadrant ? "selected" : ""}`} onClick={() => setDraft({ ...draft, quadrant })}><i />{quadrantLabel(quadrant)}</button>)}</div></div>
         <div><label className="field-label">{t.pointTitle} *</label><input required value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder={t.titlePlaceholder} /></div>
@@ -100,7 +114,7 @@ export function SwotWorkspace({ token, language, project, reports, onOpenReport 
           <div className="evidence-options">{matchingReports.map((report) => { const selected = draft.reportIds.includes(report.id); return <button type="button" key={report.id} className={selected ? "selected" : ""} onClick={() => setDraft({ ...draft, reportIds: selected ? draft.reportIds.filter((id) => id !== report.id) : [...draft.reportIds, report.id] })}><i>{selected ? "✓" : ""}</i><span><strong>{report.title}</strong><small>{report.project} · {platformLabel(report.platform)} · {contentTypeLabel(report.contentType)}</small></span></button>; })}{!matchingReports.length && <div className="evidence-empty">{t.noReports}</div>}</div>
         </div>
         {formError && <p className="form-error">{formError === "required" ? t.required : t.saveError}</p>}
-        <div className="form-footer"><span>*</span><button type="button" className="secondary" onClick={() => setDraft(null)}>{t.cancel}</button><button type="submit" className="primary" disabled={saving}>{saving ? t.saving : t.save}</button></div>
+        <div className="form-footer"><span>*</span><button type="button" className="secondary" onClick={() => closeModal("draft")}>{t.cancel}</button><button type="submit" className={`primary save-button ${saveSuccess ? "success" : ""}`} disabled={saving || saveSuccess}>{saving ? t.saving : saveSuccess ? (language === "ro" ? "✓ Salvat" : "✓ Saved") : t.save}</button></div>
       </form>
     </section></div>}
     {confirmDelete && <div className="confirm-backdrop"><div className="confirm"><div className="danger-icon">×</div><h2>{language === "ro" ? `Ștergi ${selected.length} ${selected.length === 1 ? "punct" : "puncte"}?` : `Delete ${selected.length} point${selected.length === 1 ? "" : "s"}?`}</h2><p>{t.deleteBody}</p><div><button className="secondary" onClick={() => setConfirmDelete(false)}>{t.cancel}</button><button className="danger-button" onClick={async () => { await removePoints({ token, ids: selected }); setSelected([]); setConfirmDelete(false); }}>{t.deleteConfirm}</button></div></div></div>}

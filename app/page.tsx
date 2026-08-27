@@ -45,9 +45,10 @@ const REMOVE_WEBSITE_CONTENT_TYPE = makeFunctionReference<"mutation", { token: s
 
 const PROJECTS: Project[] = ["City of Mara", "NordOne", "Vivalia", "Via Project"];
 const PROJECT_LOGOS: Partial<Record<Project, string>> = {
-  "City of Mara": "/mara.png",
-  NordOne: "/nordeone.png",
-  Vivalia: "/vivalia.png",
+  "City of Mara": "/cityofmara.png",
+  NordOne: "/nordone.png",
+  Vivalia: "/vivalia1.png",
+  "Via Project": "/viaprojects.png",
 };
 const TYPES: Record<Platform, string[]> = {
   Instagram: ["Carousel", "Post", "Reel"],
@@ -187,10 +188,14 @@ export default function Home() {
   const [confirmClose, setConfirmClose] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(false);
+  const [projectTransitioning, setProjectTransitioning] = useState(false);
   const dragId = useRef<string | null>(null);
   const filterRef = useRef<HTMLDivElement>(null);
   const projectMenuRef = useRef<HTMLDivElement>(null);
+  const reportCollectionRef = useRef<HTMLDivElement>(null);
+  const projectTransitionTimer = useRef<number | null>(null);
   const signInWithPasscode = useAction(SIGN_IN);
   const signOutSession = useMutation(SIGN_OUT);
   const saveReport = useMutation(SAVE_REPORT);
@@ -244,6 +249,9 @@ export default function Home() {
     document.addEventListener("keydown", escape);
     return () => { document.removeEventListener("pointerdown", close); document.removeEventListener("keydown", escape); };
   }, [projectMenuOpen]);
+  useEffect(() => () => {
+    if (projectTransitionTimer.current !== null) window.clearTimeout(projectTransitionTimer.current);
+  }, []);
 
   const visible = useMemo(() => {
     const filtered = projectReports.filter((r) => r.title.toLowerCase().includes(query.toLowerCase())
@@ -269,6 +277,27 @@ export default function Home() {
   ])), [activeProject, projectReports, remoteWebsiteContentTypes]);
   const hasFilters = !!(query || filters.platform.length || filters.contentType.length || filters.valueType.length);
 
+  useEffect(() => {
+    const container = reportCollectionRef.current;
+    if (!container) return;
+    const items = Array.from(container.querySelectorAll<HTMLElement>("article"));
+    container.classList.add("motion-ready");
+    if (!("IntersectionObserver" in window)) { items.forEach((item) => item.classList.add("is-visible")); return; }
+    const root = container.closest(".reports-pane");
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        (entry.target as HTMLElement).classList.add("is-visible");
+        observer.unobserve(entry.target);
+      });
+    }, { root, threshold: .12, rootMargin: "0px 0px -3% 0px" });
+    items.forEach((item, index) => {
+      item.style.setProperty("--reveal-delay", `${Math.min(index % 6, 5) * 38}ms`);
+      observer.observe(item);
+    });
+    return () => observer.disconnect();
+  }, [visible, view]);
+
   async function signIn(e: React.FormEvent) {
     e.preventDefault(); setAuthError(false);
     try {
@@ -281,17 +310,18 @@ export default function Home() {
   function openNew() {
     if (!activeProject) return;
     const now = Date.now(); const report: Report = { ...EMPTY, project: activeProject, id: crypto.randomUUID(), createdAt: now, updatedAt: now, order: projectReports.length };
-    setModalClosing(false);
+    setModalClosing(false); setSaveSuccess(false);
     setActive(report); setDraft(report); setActiveValueTypes([]); setEditing(true);
   }
-  function openReport(report: Report) { setModalClosing(false); setActive(report); setDraft({ ...report }); setActiveValueTypes(valueTypesFor(report)); setEditing(false); }
+  function openReport(report: Report) { setModalClosing(false); setSaveSuccess(false); setActive(report); setDraft({ ...report }); setActiveValueTypes(valueTypesFor(report)); setEditing(false); }
   async function save() {
     if (!draft || !sessionToken || !draft.title.trim() || !draft.contentType.trim() || !draft.improvement.trim()) return;
     setSaving(true); setSaveError(false);
     try {
       const next = { ...draft, updatedAt: Date.now() };
       await saveReport({ token: sessionToken, report: { ...next, evidence: next.evidence.map((image) => image.storageId), examples: next.examples.map((image) => image.storageId) } });
-      setActive(next); setDraft(next); setEditing(false);
+      setActive(next); setDraft(next); setSaving(false); setSaveSuccess(true);
+      window.setTimeout(() => { setEditing(false); setSaveSuccess(false); }, 620);
     } catch { setSaveError(true); }
     finally { setSaving(false); }
   }
@@ -328,15 +358,19 @@ export default function Home() {
     localStorage.setItem("audit-language", next);
   }
   function chooseProject(project: Project) {
-    setActiveProject(project);
     setProjectMenuOpen(false);
-    setFilters({ platform: [], contentType: [], valueType: [] });
-    setQuery("");
-    setSelected([]);
-    setSelectMode(false);
-    setFilterOpen(false);
-    setActive(null);
-    setDraft(null);
+    const applyProject = () => {
+      setActiveProject(project);
+      setFilters({ platform: [], contentType: [], valueType: [] });
+      setQuery(""); setSelected([]); setSelectMode(false); setFilterOpen(false); setActive(null); setDraft(null);
+    };
+    if (!activeProject || activeProject === project) { applyProject(); return; }
+    setProjectTransitioning(true);
+    if (projectTransitionTimer.current !== null) window.clearTimeout(projectTransitionTimer.current);
+    projectTransitionTimer.current = window.setTimeout(() => {
+      applyProject();
+      requestAnimationFrame(() => requestAnimationFrame(() => setProjectTransitioning(false)));
+    }, 170);
   }
 
   if (authenticated === null) return <main className="auth-shell"><div className="loader" /></main>;
@@ -354,7 +388,7 @@ export default function Home() {
 
   return <main className="app-shell">
     <header><div><img className="brand-mark small logo-image" src="/alber.png" alt="Alber" /><span className="wordmark">Alber Audit</span><div className="project-menu" ref={projectMenuRef} onMouseEnter={() => setProjectMenuOpen(true)} onMouseLeave={() => setProjectMenuOpen(false)}><button className="project-menu-trigger" aria-label={t.switchProject} aria-haspopup="listbox" aria-expanded={projectMenuOpen} onClick={() => setProjectMenuOpen((open) => !open)}><ProjectLogo project={activeProject} /><span><small>{t.project}</small><strong>{activeProject}</strong></span><b>⌄</b></button>{projectMenuOpen && <div className="project-menu-panel" role="listbox" aria-label={t.switchProject}>{PROJECTS.map((project) => <button key={project} role="option" aria-selected={project === activeProject} className={project === activeProject ? "active" : ""} onClick={() => chooseProject(project)}><ProjectLogo project={project} /><span><strong>{project}</strong><small>{project === activeProject ? (language === "ro" ? "Proiect curent" : "Current project") : (language === "ro" ? "Deschide proiectul" : "Open project")}</small></span><b>↗</b></button>)}</div>}</div></div><div className="header-actions"><LanguageToggle language={language} onChange={changeLanguage} /><button className="ghost" onClick={async () => { if (sessionToken) await signOutSession({ token: sessionToken }); localStorage.removeItem("audit-session"); setActiveProject(null); setSessionToken(null); }}>{t.logOut}</button></div></header>
-    <div className="workspace-split" key={activeProject}>
+    <div className={`workspace-split ${projectTransitioning ? "project-exit" : ""}`} key={activeProject}>
     <section className="workspace reports-pane">
       <div className="title-row"><div><p className="eyebrow">{activeProject}</p><h1>{t.reports} <span>{projectReports.length}</span></h1></div><button className="primary add" onClick={openNew}><b>＋</b> {t.newReport}</button></div>
       <div className="toolbar">
@@ -373,9 +407,9 @@ export default function Home() {
         </div>
       </div>
       {Object.values(filters).flat().length > 0 && <div className="chips">{(Object.entries(filters) as [keyof typeof filters, string[]][]).flatMap(([group, values]) => values.map((value) => <button key={group + value} className={`chip ${group}`} onClick={() => toggleFilter(group, value)}>{group === "platform" ? PLATFORM_LABELS[language][value as Platform] : group === "contentType" ? CONTENT_TYPE_LABELS[language][value] ?? value : value === "brand" ? t.brandValue : value === "sales" ? t.salesValue : t.entertainmentValue} ×</button>))}<button className="clear" onClick={() => setFilters({ platform: [], contentType: [], valueType: [] })}>{t.clearAll}</button></div>}
-      {selectMode && <div className="selection-bar"><span><b>{selected.length}</b> {language === "ro" ? (selected.length === 1 ? "selectat" : "selectate") : t.selected}</span><button disabled={!selected.length} onClick={() => setConfirmDelete(true)}>{t.delete}</button></div>}
+      {selectMode && <div className="selection-bar"><span><b key={selected.length}>{selected.length}</b> {language === "ro" ? (selected.length === 1 ? "selectat" : "selectate") : t.selected}</span><button disabled={!selected.length} onClick={() => setConfirmDelete(true)}>{t.delete}</button></div>}
       {sort === "manual" && hasFilters && <p className="reorder-note">{t.reorderNote}</p>}
-      <div className={`report-collection ${view}`}>
+      <div ref={reportCollectionRef} key={`${view}-${sort}-${query}-${JSON.stringify(filters)}`} className={`report-collection ${view} results-transition`}>
         {visible.map((report, index) => { const reportValueTypes = valueTypesFor(report); return <article key={report.id} draggable={sort === "manual" && !hasFilters} onDragStart={() => dragId.current = report.id} onDragOver={(e) => e.preventDefault()} onDrop={() => reorder(report.id)} onClick={() => selectMode ? setSelected((s) => s.includes(report.id) ? s.filter((id) => id !== report.id) : [...s, report.id]) : openReport(report)} className={`${selected.includes(report.id) ? "selected" : ""} ${reportValueTypes.map((type) => `has-${type}`).join(" ")}`}>
           {!!reportValueTypes.length && <span className="report-value-hues" aria-hidden="true">{reportValueTypes.map((type) => <i key={type} className={type} />)}</span>}
           {selectMode && <span className="select-dot">{selected.includes(report.id) ? "✓" : ""}</span>}
@@ -408,7 +442,7 @@ export default function Home() {
         <DropZone label={t.screenshots} images={draft.evidence} token={sessionToken!} language={language} onChange={(evidence) => setDraft({ ...draft, evidence })} />
         <div><label className="field-label">{t.improvementLabel} *</label><textarea rows={5} value={draft.improvement} onChange={(e) => setDraft({ ...draft, improvement: e.target.value })} placeholder={t.improvementPlaceholder} required /></div>
         <DropZone label={t.exampleScreenshots} images={draft.examples} token={sessionToken!} language={language} onChange={(examples) => setDraft({ ...draft, examples })} />
-        {saveError && <p className="form-error">{t.saveError}</p>}<div className="form-footer"><span>* {t.requiredFields}</span><button type="button" className="secondary" onClick={closeModal}>{t.cancel}</button><button type="submit" className="primary" disabled={saving}>{saving ? t.saving : reports.some((r) => r.id === draft.id) ? t.saveChanges : t.createReport}</button></div>
+        {saveError && <p className="form-error">{t.saveError}</p>}<div className="form-footer"><span>* {t.requiredFields}</span><button type="button" className="secondary" onClick={closeModal}>{t.cancel}</button><button type="submit" className={`primary save-button ${saveSuccess ? "success" : ""}`} disabled={saving || saveSuccess}>{saving ? t.saving : saveSuccess ? (language === "ro" ? "✓ Salvat" : "✓ Saved") : reports.some((r) => r.id === draft.id) ? t.saveChanges : t.createReport}</button></div>
       </form> : <div className="report-detail"><div className="detail-meta"><div><label>{t.project}</label><strong className="detail-project"><ProjectLogo project={active.project} /><span>{active.project}</span></strong></div><div><label>{t.platform}</label><strong>{PLATFORM_LABELS[language][active.platform]}</strong></div><div><label>{t.contentType}</label><strong>{CONTENT_TYPE_LABELS[language][active.contentType] ?? active.contentType}</strong></div><div><label>{t.lastUpdated}</label><strong>{new Date(active.updatedAt).toLocaleDateString(language === "ro" ? "ro-RO" : "en-GB")}</strong></div></div>
         {(active.brandValue || active.salesValue || active.entertainmentValue) && <div className="value-comment-detail"><p className="detail-section-label">{t.commentTopics}</p><div>{active.brandValue && <div className="brand"><div><span className="value-icon"><ValueIcon type="brand" /></span><label>{t.brandValue}</label>{active.brandGrade !== null && <strong>{active.brandGrade}<small>/10</small></strong>}</div><p>{active.brandValue}</p></div>}{active.salesValue && <div className="sales"><div><span className="value-icon"><ValueIcon type="sales" /></span><label>{t.salesValue}</label>{active.salesGrade !== null && <strong>{active.salesGrade}<small>/10</small></strong>}</div><p>{active.salesValue}</p></div>}{active.entertainmentValue && <div className="entertainment"><div><span className="value-icon"><ValueIcon type="entertainment" /></span><label>{t.entertainmentValue}</label>{active.entertainmentGrade !== null && <strong>{active.entertainmentGrade}<small>/10</small></strong>}</div><p>{active.entertainmentValue}</p></div>}</div></div>}
         {active.evidence.length > 0 && <div className="detail-images">{active.evidence.map((img, i) => <img key={img.storageId} src={img.url} alt={`${t.screenshots} ${i + 1}`} />)}</div>}
