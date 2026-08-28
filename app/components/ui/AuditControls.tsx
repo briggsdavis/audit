@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { PROJECT_LOGOS, type Language, type ProjectEntry, type ValueType } from "../../lib/domain";
 
 export function ValueIcon({ type }: { type: ValueType }) {
@@ -32,26 +32,10 @@ export function LanguageToggle({ language, onChange }: { language: Language; onC
   return <div className="language-toggle" aria-label="Language / Limbă"><button className={language === "en" ? "active" : ""} aria-pressed={language === "en"} onClick={() => onChange("en")}>EN</button><button className={language === "ro" ? "active" : ""} aria-pressed={language === "ro"} onClick={() => onChange("ro")}>RO</button></div>;
 }
 
-export function SortMenu({ label, value, options, onChange }: { label: string; value: string; options: { value: string; label: string }[]; onChange: (value: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const outside = (event: PointerEvent) => { if (!menuRef.current?.contains(event.target as Node)) setOpen(false); };
-    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); };
-    document.addEventListener("pointerdown", outside); document.addEventListener("keydown", escape);
-    return () => { document.removeEventListener("pointerdown", outside); document.removeEventListener("keydown", escape); };
-  }, [open]);
-  const selected = options.find((option) => option.value === value) ?? options[0];
-  return <div className="sort-menu" ref={menuRef}>
-    <button type="button" className="sort-menu-trigger" aria-label={label} aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((current) => !current)}><span>{selected.label}</span><b>⌄</b></button>
-    {open && <div className="sort-menu-options" role="listbox" aria-label={label}>{options.map((option) => <button key={option.value} role="option" aria-selected={option.value === value} className={option.value === value ? "active" : ""} onClick={() => { onChange(option.value); setOpen(false); }}><span>{option.label}</span>{option.value === value && <b>✓</b>}</button>)}</div>}
-  </div>;
-}
-
 export function ProjectLogo({ project }: { project: ProjectEntry }) {
   const logo = PROJECT_LOGOS[project];
-  return <span className={`project-logo ${project === "NordOne" ? "nord" : ""}`}><img src={logo} alt={`${project} logo`} /></span>;
+  const imageClass = project === "NordOne" ? "nord" : project === "Via Universitate" ? "via-universitate" : "";
+  return <span className={`project-logo ${imageClass}`}><img src={logo} alt={`${project} logo`} /></span>;
 }
 
 export function FilterGroup({ title, values, active, toggle, formatValue = (value) => value }: { title: string; values: readonly string[]; active: readonly string[]; toggle: (value: string) => void; formatValue?: (value: string) => string }) {

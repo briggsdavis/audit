@@ -31,7 +31,6 @@ export const VALUE_TYPES = ["brand", "sales", "entertainment"] as const;
 export type ValueType = (typeof VALUE_TYPES)[number];
 export type Language = "en" | "ro";
 export type Quadrant = "strength" | "weakness" | "opportunity" | "threat";
-export type ReportSort = "newest" | "oldest" | "platform" | "content";
 
 export type ImageAsset = { storageId: Id<"_storage">; url: string };
 
@@ -107,7 +106,6 @@ export type ReportFilters = {
   platform: Platform | null;
   contentTypes: readonly string[];
   valueTypes: readonly ValueType[];
-  sort: ReportSort;
 };
 
 export function reportsForProject(reports: readonly Report[], project: Project) {
@@ -121,10 +119,5 @@ export function filterAndSortReports(reports: readonly Report[], filters: Report
       && (!filters.platform || report.platform === filters.platform)
       && (!filters.contentTypes.length || filters.contentTypes.includes(report.contentType))
       && (!filters.valueTypes.length || filters.valueTypes.every((type) => valueTypesFor(report).includes(type))))
-    .sort((left, right) => {
-      if (filters.sort === "oldest") return left.createdAt - right.createdAt;
-      if (filters.sort === "platform") return left.platform.localeCompare(right.platform);
-      if (filters.sort === "content") return left.contentType.localeCompare(right.contentType);
-      return right.createdAt - left.createdAt;
-    });
+    .sort((left, right) => right.createdAt - left.createdAt);
 }
