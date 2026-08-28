@@ -27,13 +27,13 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
     order: v.number(),
-  }).index("by_external_id", ["externalId"]),
+  }).index("by_external_id", ["externalId"]).index("by_project", ["project"]),
   websiteContentTypes: defineTable({
     project: v.string(),
     name: v.string(),
     normalizedName: v.string(),
     createdAt: v.number(),
-  }).index("by_project_normalized_name", ["project", "normalizedName"]),
+  }).index("by_project", ["project"]).index("by_project_normalized_name", ["project", "normalizedName"]),
   swotPoints: defineTable({
     externalId: v.string(),
     project: v.optional(v.string()),

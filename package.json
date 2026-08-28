@@ -11,6 +11,7 @@
     "start": "next start",
     "convex:dev": "convex dev",
     "test": "npm run build",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint . --ignore-pattern .next --ignore-pattern node_modules.incomplete"
   },
   "dependencies": {

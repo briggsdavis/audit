@@ -2,16 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { makeFunctionReference } from "convex/server";
+import { api } from "../convex/_generated/api";
+import type { Language, Project, Quadrant, Report, SwotPoint } from "./lib/domain";
 
-type Language = "en" | "ro";
-type Quadrant = "strength" | "weakness" | "opportunity" | "threat";
-type Report = { id: string; title: string; project: string; platform: string; contentType: string };
-type SwotPoint = { id: string; project: string; title: string; analysis: string; quadrant: Quadrant; reportIds: string[]; createdAt: number; updatedAt: number };
-
-const LIST_SWOT = makeFunctionReference<"query", { token: string; project: string }, SwotPoint[]>("swot:list");
-const SAVE_SWOT = makeFunctionReference<"mutation", { token: string; point: SwotPoint }, void>("swot:save");
-const REMOVE_SWOT = makeFunctionReference<"mutation", { token: string; ids: string[] }, void>("swot:remove");
 const QUADRANTS: Quadrant[] = ["strength", "weakness", "opportunity", "threat"];
 const COPY = {
   en: {
@@ -22,12 +15,12 @@ const COPY = {
   },
 } as const;
 
-export function SwotWorkspace({ token, language, project, reports, onOpenReport }: { token: string; language: Language; project: string; reports: Report[]; onOpenReport: (reportId: string) => void }) {
+export function SwotWorkspace({ token, language, project, reports, onOpenReport }: { token: string; language: Language; project: Project; reports: Report[]; onOpenReport: (reportId: string) => void }) {
   const t = COPY[language];
-  const remotePoints = useQuery(LIST_SWOT, { token, project });
-  const savePoint = useMutation(SAVE_SWOT);
-  const removePoints = useMutation(REMOVE_SWOT);
-  const points = useMemo(() => remotePoints ?? [], [remotePoints]);
+  const remotePoints = useQuery(api.swot.list, { token, project });
+  const savePoint = useMutation(api.swot.save);
+  const removePoints = useMutation(api.swot.remove);
+  const points = useMemo(() => (remotePoints ?? []) as SwotPoint[], [remotePoints]);
   const [focused, setFocused] = useState<Quadrant | null>(null);
   const [view, setView] = useState<"list" | "grid">("list");
   const [active, setActive] = useState<SwotPoint | null>(null);
@@ -117,6 +110,6 @@ export function SwotWorkspace({ token, language, project, reports, onOpenReport 
         <div className="form-footer"><span>*</span><button type="button" className="secondary" onClick={() => closeModal("draft")}>{t.cancel}</button><button type="submit" className={`primary save-button ${saveSuccess ? "success" : ""}`} disabled={saving || saveSuccess}>{saving ? t.saving : saveSuccess ? (language === "ro" ? "✓ Salvat" : "✓ Saved") : t.save}</button></div>
       </form>
     </section></div>}
-    {confirmDelete && <div className="confirm-backdrop"><div className="confirm"><div className="danger-icon">×</div><h2>{language === "ro" ? `Ștergi ${selected.length} ${selected.length === 1 ? "punct" : "puncte"}?` : `Delete ${selected.length} point${selected.length === 1 ? "" : "s"}?`}</h2><p>{t.deleteBody}</p><div><button className="secondary" onClick={() => setConfirmDelete(false)}>{t.cancel}</button><button className="danger-button" onClick={async () => { await removePoints({ token, ids: selected }); setSelected([]); setConfirmDelete(false); }}>{t.deleteConfirm}</button></div></div></div>}
+    {confirmDelete && <div className="confirm-backdrop"><div className="confirm"><div className="danger-icon">×</div><h2>{language === "ro" ? `Ștergi ${selected.length} ${selected.length === 1 ? "punct" : "puncte"}?` : `Delete ${selected.length} point${selected.length === 1 ? "" : "s"}?`}</h2><p>{t.deleteBody}</p><div><button className="secondary" onClick={() => setConfirmDelete(false)}>{t.cancel}</button><button className="danger-button" onClick={async () => { await removePoints({ token, project, ids: selected }); setSelected([]); setConfirmDelete(false); }}>{t.deleteConfirm}</button></div></div></div>}
   </section>;
 }

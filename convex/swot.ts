@@ -1,30 +1,28 @@
-import { mutationGeneric, queryGeneric } from "convex/server";
 import { ConvexError, v } from "convex/values";
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { mutation, query } from "./_generated/server";
+import { projectValidator, publicProjectName, requireProject, sameProject, storedProjectNames } from "./lib/projects";
+import { requireSession } from "./lib/sessions";
+import { quadrantValidator, swotPointResultValidator } from "./lib/validators";
 
-const quadrant = v.union(v.literal("strength"), v.literal("weakness"), v.literal("opportunity"), v.literal("threat"));
-const projects = new Set(["City of Mara", "NordOne", "Nord1", "Vivalia", "Via Project"]);
-const publicProjectName = (project: string) => project === "Nord1" ? "NordOne" : project;
+const MAX_PROJECT_RECORDS = 5_000;
 
-async function requireSession(ctx: any, token: string) {
-  const session = await ctx.db.query("sessions").withIndex("by_token", (q: any) => q.eq("token", token)).unique();
-  if (!session || session.expiresAt <= Date.now()) throw new ConvexError("Session expired");
-}
-
-export const list = queryGeneric({
-  args: { token: v.string(), project: v.string() },
+export const list = query({
+  args: { token: v.string(), project: projectValidator },
+  returns: v.array(swotPointResultValidator),
   handler: async (ctx, { token, project }) => {
     await requireSession(ctx, token);
-    if (!projects.has(project)) throw new ConvexError("Invalid project");
-    const allPoints = await ctx.db.query("swotPoints").collect();
-    const points = [];
-    for (const point of allPoints) {
-      if (publicProjectName(point.project ?? "") === publicProjectName(project)) points.push(point);
-      else if (!point.project) {
-        const linkedReports = await Promise.all(point.reportIds.map((reportId: string) => ctx.db.query("reports").withIndex("by_external_id", (q: any) => q.eq("externalId", reportId)).unique()));
+    requireProject(project);
+    const points = (await Promise.all(storedProjectNames(project).map((storedProject) => ctx.db
+      .query("swotPoints")
+      .withIndex("by_project", (index) => index.eq("project", storedProject))
+      .take(MAX_PROJECT_RECORDS)))).flat();
+    const legacyPoints = await ctx.db.query("swotPoints")
+      .withIndex("by_project", (index) => index.eq("project", undefined))
+      .take(MAX_PROJECT_RECORDS);
+    for (const point of legacyPoints) {
+        const linkedReports = await Promise.all(point.reportIds.map((reportId) => ctx.db.query("reports").withIndex("by_external_id", (q) => q.eq("externalId", reportId)).unique()));
         const inferredProject = linkedReports.find(Boolean)?.project ?? "City of Mara";
-        if (publicProjectName(inferredProject) === publicProjectName(project) && linkedReports.every((report: any) => !report || publicProjectName(report.project) === publicProjectName(project))) points.push(point);
-      }
+        if (sameProject(inferredProject, project) && linkedReports.every((report) => !report || sameProject(report.project, project))) points.push(point);
     }
     return points.map((point) => ({
       id: point.externalId,
@@ -39,45 +37,52 @@ export const list = queryGeneric({
   },
 });
 
-export const save = mutationGeneric({
+export const save = mutation({
   args: {
     token: v.string(),
     point: v.object({
       id: v.string(),
-      project: v.string(),
+      project: projectValidator,
       title: v.string(),
       analysis: v.string(),
-      quadrant,
+      quadrant: quadrantValidator,
       reportIds: v.array(v.string()),
       createdAt: v.number(),
       updatedAt: v.number(),
     }),
   },
+  returns: v.null(),
   handler: async (ctx, { token, point }) => {
     await requireSession(ctx, token);
-    if (!projects.has(point.project)) throw new ConvexError("Invalid project");
+    requireProject(point.project);
     const title = point.title.trim();
     const analysis = point.analysis.trim();
     if (!title || !analysis) throw new ConvexError("Title and analysis are required");
     const reportIds = [...new Set(point.reportIds)];
     for (const reportId of reportIds) {
       const report = await ctx.db.query("reports").withIndex("by_external_id", (q) => q.eq("externalId", reportId)).unique();
-      if (!report || publicProjectName(report.project) !== publicProjectName(point.project)) throw new ConvexError("Linked report must belong to this project");
+      if (!report || !sameProject(report.project, point.project)) throw new ConvexError("Linked report must belong to this project");
     }
     const value = { project: point.project, title, analysis, quadrant: point.quadrant, reportIds, createdAt: point.createdAt, updatedAt: point.updatedAt };
     const existing = await ctx.db.query("swotPoints").withIndex("by_external_id", (q) => q.eq("externalId", point.id)).unique();
     if (existing) await ctx.db.patch(existing._id, value);
     else await ctx.db.insert("swotPoints", { externalId: point.id, ...value });
+    return null;
   },
 });
 
-export const remove = mutationGeneric({
-  args: { token: v.string(), ids: v.array(v.string()) },
-  handler: async (ctx, { token, ids }) => {
+export const remove = mutation({
+  args: { token: v.string(), project: projectValidator, ids: v.array(v.string()) },
+  returns: v.null(),
+  handler: async (ctx, { token, project, ids }) => {
     await requireSession(ctx, token);
+    requireProject(project);
     for (const id of [...new Set(ids)]) {
       const point = await ctx.db.query("swotPoints").withIndex("by_external_id", (q) => q.eq("externalId", id)).unique();
-      if (point) await ctx.db.delete(point._id);
+      if (!point) continue;
+      if (point.project && !sameProject(point.project, project)) throw new ConvexError("A SWOT point can only be removed from its own project");
+      await ctx.db.delete(point._id);
     }
+    return null;
   },
 });
