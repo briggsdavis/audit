@@ -5,7 +5,7 @@ export type Platform = (typeof PLATFORMS)[number];
 
 export const PROJECTS = ["City of Mara", "NordOne", "Vivalia", "Via Carmina", "Via Universitate"] as const;
 export type Project = (typeof PROJECTS)[number];
-export type ProjectEntry = Project | "Via Project";
+export type ProjectEntry = Project | "Via Projects";
 
 export type AuditAccess = {
   accessLevel: "editor" | "general_view" | "com_view" | "nordone_view" | "via_view" | "vivalia_view";
@@ -13,14 +13,14 @@ export type AuditAccess = {
   projects: Project[];
 };
 
-export const PROJECT_ENTRIES: readonly ProjectEntry[] = ["City of Mara", "NordOne", "Vivalia", "Via Project"];
+export const PROJECT_ENTRIES: readonly ProjectEntry[] = ["City of Mara", "NordOne", "Vivalia", "Via Projects"];
 export const VIA_PROJECTS: readonly Project[] = ["Via Carmina", "Via Universitate"];
 
 export const PROJECT_LOGOS: Record<ProjectEntry, string> = {
   "City of Mara": "/cityofmara.png",
   NordOne: "/nordone.png",
   Vivalia: "/vivalia1.png",
-  "Via Project": "/viaprojects.png",
+  "Via Projects": "/viaprojects.png",
   "Via Carmina": "/varmina.png",
   "Via Universitate": "/universitate%20.png",
 };

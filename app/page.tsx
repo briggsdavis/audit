@@ -171,7 +171,7 @@ export default function Home() {
     }, 170);
   }
   function openProjectEntry(project: ProjectEntry) {
-    if (project === "Via Project") setChoosingViaProject(true);
+    if (project === "Via Projects") setChoosingViaProject(true);
     else chooseProject(project);
   }
 
