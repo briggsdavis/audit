@@ -9,6 +9,7 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as lib_access from "../lib/access.js";
 import type * as lib_projects from "../lib/projects.js";
 import type * as lib_sessions from "../lib/sessions.js";
 import type * as lib_validators from "../lib/validators.js";
@@ -23,6 +24,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  "lib/access": typeof lib_access;
   "lib/projects": typeof lib_projects;
   "lib/sessions": typeof lib_sessions;
   "lib/validators": typeof lib_validators;

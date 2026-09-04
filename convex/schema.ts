@@ -1,10 +1,15 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { accessLevelValidator } from "./lib/access";
 
 export default defineSchema({
   sessions: defineTable({
     token: v.string(),
     expiresAt: v.number(),
+    accessLevel: v.optional(accessLevelValidator),
+    canEdit: v.optional(v.boolean()),
+    projects: v.optional(v.array(v.string())),
+    version: v.optional(v.number()),
   }).index("by_token", ["token"]),
   reports: defineTable({
     externalId: v.string(),

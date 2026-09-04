@@ -18,9 +18,9 @@ function PlatformIcon({ platform }: { platform: Platform | "all" }) {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></svg>;
 }
 
-export function ReportToolbar({ language, copy, query, platform, contentTypes, valueTypes, availableContentTypes, selectMode, view, onQuery, onPlatform, onToggleFilter, onSelectMode, onView }: {
+export function ReportToolbar({ language, copy, query, platform, contentTypes, valueTypes, availableContentTypes, canEdit, selectMode, view, onQuery, onPlatform, onToggleFilter, onSelectMode, onView }: {
   language: Language; copy: ToolbarCopy; query: string; platform: Platform | null; contentTypes: string[]; valueTypes: ValueType[];
-  availableContentTypes: string[]; selectMode: boolean; view: "list" | "grid";
+  availableContentTypes: string[]; canEdit: boolean; selectMode: boolean; view: "list" | "grid";
   onQuery: (query: string) => void; onPlatform: (platform: Platform | null) => void;
   onToggleFilter: (group: "contentType" | "valueType", value: string) => void;
   onSelectMode: () => void; onView: (view: "list" | "grid") => void;
@@ -49,7 +49,7 @@ export function ReportToolbar({ language, copy, query, platform, contentTypes, v
           <FilterGroup title={copy.valueComment} values={VALUE_TYPES} active={valueTypes} toggle={(value) => onToggleFilter("valueType", value)} formatValue={(value) => value === "brand" ? copy.brandValue : value === "sales" ? copy.salesValue : copy.entertainmentValue} />
         </div>}
       </div>
-      <button className={`tool-button ${selectMode ? "active" : ""}`} onClick={onSelectMode}>✓ <span>{selectMode ? copy.done : copy.select}</span></button>
+      {canEdit && <button className={`tool-button ${selectMode ? "active" : ""}`} onClick={onSelectMode}>✓ <span>{selectMode ? copy.done : copy.select}</span></button>}
       <div className="view-switch"><button aria-label={copy.listView} className={view === "list" ? "active" : ""} onClick={() => onView("list")}>☷</button><button aria-label={copy.gridView} className={view === "grid" ? "active" : ""} onClick={() => onView("grid")}>▦</button></div>
     </div>
   </div>;

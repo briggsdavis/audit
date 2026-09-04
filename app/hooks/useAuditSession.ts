@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import type { AuditAccess } from "../lib/domain";
 
 export function useAuditSession() {
   const [token, setToken] = useState<string | null | undefined>(undefined);
@@ -10,15 +11,15 @@ export function useAuditSession() {
   const [authError, setAuthError] = useState(false);
   const signInWithPasscode = useAction(api.auth.signIn);
   const signOutSession = useMutation(api.auth.signOut);
-  const sessionValid = useQuery(api.auth.validateSession, typeof token === "string" ? { token } : "skip");
-  const authenticated = token === undefined ? null : token === null ? false : sessionValid === undefined ? null : sessionValid;
+  const sessionAccess = useQuery(api.auth.validateSession, typeof token === "string" ? { token } : "skip");
+  const authenticated = token === undefined ? null : token === null ? false : sessionAccess === undefined ? null : sessionAccess !== null;
 
   useEffect(() => {
     queueMicrotask(() => setToken(localStorage.getItem("audit-session")));
   }, []);
   useEffect(() => {
-    if (token && sessionValid === false) localStorage.removeItem("audit-session");
-  }, [token, sessionValid]);
+    if (token && sessionAccess === null) localStorage.removeItem("audit-session");
+  }, [token, sessionAccess]);
 
   const signIn = async (event: FormEvent) => {
     event.preventDefault(); setAuthError(false);
@@ -38,5 +39,5 @@ export function useAuditSession() {
     setToken(null);
   };
 
-  return { token, authenticated, passcode, authError, setPasscode, signIn, signOut };
+  return { token, authenticated, access: (sessionAccess ?? null) as AuditAccess | null, passcode, authError, setPasscode, signIn, signOut };
 }

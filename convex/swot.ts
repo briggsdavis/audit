@@ -10,8 +10,8 @@ export const list = query({
   args: { token: v.string(), project: projectValidator },
   returns: v.array(swotPointResultValidator),
   handler: async (ctx, { token, project }) => {
-    await requireSession(ctx, token);
     requireProject(project);
+    await requireSession(ctx, token, { project });
     const points = (await Promise.all(storedProjectNames(project).map((storedProject) => ctx.db
       .query("swotPoints")
       .withIndex("by_project", (index) => index.eq("project", storedProject))
@@ -53,8 +53,8 @@ export const save = mutation({
   },
   returns: v.null(),
   handler: async (ctx, { token, point }) => {
-    await requireSession(ctx, token);
     requireProject(point.project);
+    await requireSession(ctx, token, { project: point.project, write: true });
     const title = point.title.trim();
     const analysis = point.analysis.trim();
     if (!title || !analysis) throw new ConvexError("Title and analysis are required");
@@ -65,7 +65,10 @@ export const save = mutation({
     }
     const value = { project: point.project, title, analysis, quadrant: point.quadrant, reportIds, createdAt: point.createdAt, updatedAt: point.updatedAt };
     const existing = await ctx.db.query("swotPoints").withIndex("by_external_id", (q) => q.eq("externalId", point.id)).unique();
-    if (existing) await ctx.db.patch(existing._id, value);
+    if (existing) {
+      if (existing.project && !sameProject(existing.project, point.project)) throw new ConvexError("A SWOT point cannot be moved between projects");
+      await ctx.db.patch(existing._id, value);
+    }
     else await ctx.db.insert("swotPoints", { externalId: point.id, ...value });
     return null;
   },
@@ -75,8 +78,8 @@ export const remove = mutation({
   args: { token: v.string(), project: projectValidator, ids: v.array(v.string()) },
   returns: v.null(),
   handler: async (ctx, { token, project, ids }) => {
-    await requireSession(ctx, token);
     requireProject(project);
+    await requireSession(ctx, token, { project, write: true });
     for (const id of [...new Set(ids)]) {
       const point = await ctx.db.query("swotPoints").withIndex("by_external_id", (q) => q.eq("externalId", id)).unique();
       if (!point) continue;

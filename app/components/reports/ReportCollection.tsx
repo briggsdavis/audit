@@ -7,12 +7,12 @@ import { ProjectLogo, ValueIcon } from "../ui/AuditControls";
 
 type CollectionCopy = {
   brandValue: string; salesValue: string; entertainmentValue: string; updated: string; open: string;
-  noReportsFound: string; noReportsYet: string; noReportsFiltered: string; noReportsEmpty: string; createAReport: string;
+  noReportsFound: string; noReportsYet: string; noReportsFiltered: string; noReportsEmpty: string; noReportsEmptyViewOnly: string; createAReport: string;
 };
 
-export function ReportCollection({ reports, totalReports, language, copy, view, transitionKey, selected, selectMode, onSelect, onOpen, onCreate }: {
+export function ReportCollection({ reports, totalReports, language, copy, canCreate, view, transitionKey, selected, selectMode, onSelect, onOpen, onCreate }: {
   reports: Report[]; totalReports: number; language: Language; copy: CollectionCopy; view: "list" | "grid"; transitionKey: string;
-  selected: string[]; selectMode: boolean; onSelect: (reportId: string) => void; onOpen: (report: Report) => void; onCreate: () => void;
+  selected: string[]; selectMode: boolean; canCreate: boolean; onSelect: (reportId: string) => void; onOpen: (report: Report) => void; onCreate: () => void;
 }) {
   const collectionRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -47,6 +47,6 @@ export function ReportCollection({ reports, totalReports, language, copy, view, 
         <div className="project"><div className="project-identity"><ProjectLogo project={report.project} /><span>{report.project}</span></div><small>{copy.updated} {new Date(report.updatedAt).toLocaleDateString(language === "ro" ? "ro-RO" : "en-GB", { day: "numeric", month: "short" })}</small></div><button className="expand" aria-label={`${copy.open} ${report.title}`}>↗</button><span className="number">{String(index + 1).padStart(2, "0")}</span>
       </article>;
     })}
-    {!reports.length && <div className="empty"><span>⌕</span><h2>{totalReports ? copy.noReportsFound : copy.noReportsYet}</h2><p>{totalReports ? copy.noReportsFiltered : copy.noReportsEmpty}</p>{!totalReports && <button className="secondary" onClick={onCreate}>{copy.createAReport}</button>}</div>}
+    {!reports.length && <div className="empty"><span>⌕</span><h2>{totalReports ? copy.noReportsFound : copy.noReportsYet}</h2><p>{totalReports ? copy.noReportsFiltered : canCreate ? copy.noReportsEmpty : copy.noReportsEmptyViewOnly}</p>{!totalReports && canCreate && <button className="secondary" onClick={onCreate}>{copy.createAReport}</button>}</div>}
   </div>;
 }

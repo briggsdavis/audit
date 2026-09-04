@@ -7,6 +7,12 @@ export const PROJECTS = ["City of Mara", "NordOne", "Vivalia", "Via Carmina", "V
 export type Project = (typeof PROJECTS)[number];
 export type ProjectEntry = Project | "Via Project";
 
+export type AuditAccess = {
+  accessLevel: "editor" | "general_view" | "com_view" | "nordone_view" | "via_view" | "vivalia_view";
+  canEdit: boolean;
+  projects: Project[];
+};
+
 export const PROJECT_ENTRIES: readonly ProjectEntry[] = ["City of Mara", "NordOne", "Vivalia", "Via Project"];
 export const VIA_PROJECTS: readonly Project[] = ["Via Carmina", "Via Universitate"];
 

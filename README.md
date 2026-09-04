@@ -1,8 +1,8 @@
 # Audit
 
-A shared content-audit workspace built with Next.js, Convex, and Vercel. One
-shared passcode unlocks the workspace for all collaborators; the passcode lives
-only in the Convex deployment environment.
+A shared content-audit workspace built with Next.js, Convex, and Vercel.
+Passcode-based access profiles control edit/view permissions and project scope;
+passcodes live only in the Convex deployment environment.
 
 ## Prerequisites
 
@@ -17,8 +17,18 @@ npm run dev
 npm run build
 ```
 
-When Convex opens its dashboard, set `AUDIT_PASSCODE` in the development and
-production deployments. Use a long, randomly generated passphrase.
+When Convex opens its dashboard, set the following variables in both development
+and production deployments:
+
+- `AUDIT_EDITOR_PASSCODE`: edit and view access to every project
+- `AUDIT_GENERAL_VIEW_PASSCODE`: view-only access to every project
+- `AUDIT_COM_VIEW_PASSCODE`: view-only access to City of Mara (COM)
+- `AUDIT_NORDONE_VIEW_PASSCODE`: view-only access to NordOne
+- `AUDIT_VIA_VIEW_PASSCODE`: view-only access to Via Carmina and Via Universitate
+- `AUDIT_VIVALIA_VIEW_PASSCODE`: view-only access to Vivalia
+
+`AUDIT_PASSCODE` remains supported as a legacy alias for the editor passcode.
+Do not expose these values through `NEXT_PUBLIC_` variables or client-side code.
 
 ## Vercel
 
@@ -31,7 +41,8 @@ URL into the Next.js build automatically.
 - edit the interface under `app/`
 - edit backend functions and schema under `convex/`
 - reports and uploaded images are shared through Convex
-- sessions expire after 30 days and all data functions validate the session
+- sessions expire after 30 days and all data functions validate the session,
+  project scope, and write permission on the Convex backend
 
 ## Useful Commands
 
