@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { AuditAccess } from "../lib/domain";
@@ -9,6 +9,7 @@ export function useAuditSession() {
   const [token, setToken] = useState<string | null | undefined>(undefined);
   const [passcode, setPasscode] = useState("");
   const [authError, setAuthError] = useState(false);
+  const [showLoginIntro, setShowLoginIntro] = useState(false);
   const signInWithPasscode = useAction(api.auth.signIn);
   const signOutSession = useMutation(api.auth.signOut);
   const sessionAccess = useQuery(api.auth.validateSession, typeof token === "string" ? { token } : "skip");
@@ -26,6 +27,7 @@ export function useAuditSession() {
     try {
       const result = await signInWithPasscode({ passcode });
       localStorage.setItem("audit-session", result.token);
+      setShowLoginIntro(true);
       setToken(result.token);
       setPasscode("");
     } catch {
@@ -36,8 +38,10 @@ export function useAuditSession() {
   const signOut = async () => {
     if (token) await signOutSession({ token });
     localStorage.removeItem("audit-session");
+    setShowLoginIntro(false);
     setToken(null);
   };
+  const completeLoginIntro = useCallback(() => setShowLoginIntro(false), []);
 
-  return { token, authenticated, access: (sessionAccess ?? null) as AuditAccess | null, passcode, authError, setPasscode, signIn, signOut };
+  return { token, authenticated, access: (sessionAccess ?? null) as AuditAccess | null, passcode, authError, showLoginIntro, setPasscode, signIn, signOut, completeLoginIntro };
 }

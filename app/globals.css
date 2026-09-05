@@ -409,6 +409,17 @@ header::after { content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
 .project-gate-options button span { width:100%;text-align:center; }
 .project-gate-options button b { margin:auto 0 0;transition:transform .35s var(--ease-premium),color .25s; }
 .project-gate-options button:hover b { transform:translate(5px,-2px);color:var(--purple-dark); }
+.project-gate-options button:disabled { cursor:not-allowed;opacity:.38;filter:grayscale(.75);background:rgba(235,232,228,.58); }
+.project-gate-options button:disabled .project-logo { opacity:.72; }
+.project-gate-options button:disabled b { color:#9b958f; }
+.project-gate.awaiting-intro .project-gate-card,.project-gate.awaiting-intro .auth-language { opacity:0;animation:project-gate-after-intro .72s 2.92s var(--ease-premium) forwards; }
+.login-hero-sequence { position:fixed;inset:0;z-index:100;background:var(--paper);display:grid;place-items:center;pointer-events:none;animation:hero-curtain-out .7s 3.12s var(--ease-premium) forwards; }
+.login-hero-lockup { position:relative;display:flex;align-items:center;justify-content:center;gap:30px; }
+.login-hero-lockup>img { width:76px;height:76px;object-fit:contain;animation:hero-logo-arrival 3.42s var(--ease-premium) both; }
+.login-hero-title { display:flex;overflow:hidden;font-family:Georgia,"Times New Roman",serif;font-size:clamp(38px,5vw,68px);letter-spacing:-.035em;line-height:1;color:var(--ink);white-space:nowrap;animation:hero-title-exit .5s 2.38s var(--ease-premium) forwards; }
+.login-hero-title>span { display:block;overflow:hidden;padding-bottom:.08em; }
+.login-hero-title>span.space { width:.28em; }
+.login-hero-title i { display:block;font-style:normal;transform:translateY(115%);animation:hero-word-roll .82s var(--ease-premium) forwards; }
 .via-project-gate { width:min(760px,100%); }
 .via-project-gate .project-gate-options { grid-template-columns:repeat(2,minmax(0,1fr)); }
 .back-to-projects { margin:24px auto 0;padding:10px 14px;border:0;border-bottom:1px solid var(--purple);background:transparent;color:var(--purple);font-size:12px; }
@@ -465,6 +476,17 @@ header::after { content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
 @keyframes chip-arrive { from { opacity:0;transform:scaleX(.82) } to { opacity:1;transform:none } }
 @keyframes check-pop { 0% { transform:scale(.55) } 70% { transform:scale(1.12) } 100% { transform:scale(1) } }
 @keyframes count-pop { 0% { transform:scale(.82) } 70% { transform:scale(1.08) } 100% { transform:scale(1) } }
+@keyframes hero-word-roll { from { opacity:0;transform:translateY(115%) rotate(3deg) } to { opacity:1;transform:none } }
+@keyframes hero-title-exit { to { opacity:0;transform:translateY(-7px);filter:blur(3px) } }
+@keyframes hero-logo-arrival {
+  0% { opacity:0;transform:translateX(0) scale(.92) }
+  15% { opacity:1;transform:translateX(0) scale(1) }
+  28%,68% { opacity:1;transform:translateX(-104px) scale(1) }
+  88% { opacity:1;transform:translate(0,clamp(-210px,-22vh,-130px)) scale(.74) }
+  100% { opacity:0;transform:translate(0,clamp(-210px,-22vh,-130px)) scale(.74) }
+}
+@keyframes hero-curtain-out { to { opacity:0;visibility:hidden } }
+@keyframes project-gate-after-intro { from { opacity:0;transform:translateY(9px) } to { opacity:1;transform:none } }
 
 @media (max-width:1180px) {
   .app-shell { height:auto;min-height:100vh;overflow:visible; }
@@ -504,7 +526,19 @@ header::after { content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
   .via-project-gate .project-gate-options { grid-template-columns:1fr; }
   .project-gate-options button { min-height:130px; }
   .login-card { padding:42px 24px; }
+  .login-hero-lockup { gap:18px; }
+  .login-hero-lockup>img { width:60px;height:60px; }
+  .login-hero-title { font-size:36px; }
+  @keyframes hero-logo-arrival {
+    0% { opacity:0;transform:translateX(0) scale(.92) }
+    15% { opacity:1;transform:translateX(0) scale(1) }
+    28%,68% { opacity:1;transform:translateX(-76px) scale(1) }
+    88% { opacity:1;transform:translate(0,-28vh) scale(.8) }
+    100% { opacity:0;transform:translate(0,-28vh) scale(.8) }
+  }
 }
 @media (prefers-reduced-motion:reduce) {
   .workspace-split,.workspace-split::before,header::after,.toolbar::before,.toolbar::after,.auth-shell::before,.auth-shell::after,.project-gate::before,.project-gate::after,.report-collection article,.swot-quadrant { animation:none!important; }
+  .project-gate.awaiting-intro .project-gate-card,.project-gate.awaiting-intro .auth-language { opacity:1;animation:none; }
+  .login-hero-sequence { display:none; }
 }

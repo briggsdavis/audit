@@ -9,6 +9,7 @@ import { ImageDropZone } from "./components/reports/ImageDropZone";
 import { ReportCollection } from "./components/reports/ReportCollection";
 import { ReportToolbar } from "./components/reports/ReportToolbar";
 import { LoginScreen } from "./components/auth/LoginScreen";
+import { LoginHeroSequence } from "./components/auth/LoginHeroSequence";
 import { AppHeader } from "./components/projects/AppHeader";
 import { ProjectGate } from "./components/projects/ProjectGate";
 import { useAuditSession } from "./hooks/useAuditSession";
@@ -50,7 +51,7 @@ export default function Home() {
   const [language, setLanguage] = useState<Language>("en");
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [choosingViaProject, setChoosingViaProject] = useState(false);
-  const { token: sessionToken, authenticated, access, passcode, authError, setPasscode, signIn, signOut } = useAuditSession();
+  const { token: sessionToken, authenticated, access, passcode, authError, showLoginIntro, setPasscode, signIn, signOut, completeLoginIntro } = useAuditSession();
   const [view, setView] = useState<"list" | "grid">("list");
   const [query, setQuery] = useState("");
   const [platformFilter, setPlatformFilter] = useState<Platform | null>(null);
@@ -178,7 +179,10 @@ export default function Home() {
   if (authenticated === null) return <main className="auth-shell"><div className="loader" /></main>;
   if (!authenticated) return <LoginScreen language={language} copy={t} passcode={passcode} hasError={authError} onLanguage={changeLanguage} onPasscode={setPasscode} onSubmit={signIn} />;
 
-  if (!currentProject) return <ProjectGate language={language} copy={t} projects={allowedProjects} choosingVia={choosingViaProject && allowedProjects.some((project) => project.startsWith("Via "))} onLanguage={changeLanguage} onSelect={openProjectEntry} onBack={() => setChoosingViaProject(false)} />;
+  if (!currentProject) return <>
+    <ProjectGate intro={showLoginIntro} language={language} copy={t} projects={allowedProjects} choosingVia={choosingViaProject && allowedProjects.some((project) => project.startsWith("Via "))} onLanguage={changeLanguage} onSelect={openProjectEntry} onBack={() => setChoosingViaProject(false)} />
+    {showLoginIntro && <LoginHeroSequence onComplete={completeLoginIntro} />}
+  </>;
 
   return <main className="app-shell">
     <AppHeader language={language} project={currentProject} projects={allowedProjects} canEdit={canEdit} copy={t} onLanguage={changeLanguage} onProject={chooseProject} onLogout={async () => { await signOut(); setActiveProject(null); setChoosingViaProject(false); }} />
