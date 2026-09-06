@@ -20,7 +20,7 @@ export function ProjectGate({ language, copy, projects, choosingVia, intro = fal
     ? VIA_PROJECTS.some((viaProject) => projects.includes(viaProject))
     : projects.includes(project);
   return <main className={`project-gate ${intro ? "awaiting-intro" : ""}`}><div className="auth-language"><LanguageToggle language={language} onChange={onLanguage} /></div><section className={`project-gate-card ${choosingVia ? "via-project-gate" : ""}`}>
-    <img className="brand-mark logo-image" src="/alber.png" alt="Alber" /><p className="eyebrow">{choosingVia ? "Via Projects" : "Alber Audit"}</p><h1>{choosingVia ? copy.chooseViaProject : copy.chooseProject}</h1><p>{choosingVia ? copy.chooseViaProjectHint : copy.chooseProjectHint}</p>
+    <img data-project-gate-logo className="brand-mark logo-image" src="/alber.png" alt="Alber" /><p className="eyebrow">{choosingVia ? "Via Projects" : "Alber Audit"}</p><h1>{choosingVia ? copy.chooseViaProject : copy.chooseProject}</h1><p>{choosingVia ? copy.chooseViaProjectHint : copy.chooseProjectHint}</p>
     <div className="project-gate-options">{entries.map((project) => {
       const enabled = canOpen(project);
       return <button key={project} disabled={!enabled} aria-disabled={!enabled} onClick={() => enabled && onSelect(project)}><ProjectLogo project={project} /><span>{project}</span><b>{enabled ? "→" : "—"}</b></button>;
