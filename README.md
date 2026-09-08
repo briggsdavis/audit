@@ -35,9 +35,9 @@ Do not expose these values through `NEXT_PUBLIC_` variables or client-side code.
 User-entered report and SWOT text is translated in the background immediately
 after each save. Set `OPENAI_API_KEY` only in the Convex deployment environment
 after deployment. Never add it to Vercel, `.env.local`, source control, or a
-`NEXT_PUBLIC_` variable. `OPENAI_TRANSLATION_MODEL` is optional and defaults to
-`gpt-5-mini`. An editor can use the protected backfill function to queue
-existing records after the key is configured.
+`NEXT_PUBLIC_` variable. Translation uses `gpt-5.4-nano`, selected explicitly
+in the server code for this low-complexity workload. An editor can use the
+protected backfill function to queue existing records after the key is configured.
 
 ## Vercel
 
