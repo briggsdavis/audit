@@ -2,7 +2,8 @@ import { ConvexError, v } from "convex/values";
 import { internal } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
 import { projectValidator, publicProjectName, requireProject, sameProject, storedProjectNames } from "./lib/projects";
-import { requireSession } from "./lib/sessions";
+import { getSessionOrNull, requireSession } from "./lib/sessions";
+import { requireProjectAccess } from "./lib/access";
 import { quadrantValidator, swotPointResultValidator } from "./lib/validators";
 import { enforceWriteRateLimit } from "./lib/rateLimits";
 
@@ -15,7 +16,9 @@ export const list = query({
   returns: v.array(swotPointResultValidator),
   handler: async (ctx, { token, project }) => {
     requireProject(project);
-    await requireSession(ctx, token, { project });
+    const session = await getSessionOrNull(ctx, token);
+    if (!session) return [];
+    requireProjectAccess(session, project);
     const points = (await Promise.all(storedProjectNames(project).map((storedProject) => ctx.db
       .query("swotPoints")
       .withIndex("by_project", (index) => index.eq("project", storedProject))
@@ -70,8 +73,8 @@ export const save = mutation({
       const report = await ctx.db.query("reports").withIndex("by_external_id", (q) => q.eq("externalId", reportId)).unique();
       if (!report || !sameProject(report.project, point.project)) throw new ConvexError("Linked report must belong to this project");
     }
-    const value = { project: point.project, title, analysis, quadrant: point.quadrant, reportIds, createdAt: point.createdAt, updatedAt: point.updatedAt };
     const existing = await ctx.db.query("swotPoints").withIndex("by_external_id", (q) => q.eq("externalId", point.id)).unique();
+    const value = { project: point.project, title, analysis, quadrant: point.quadrant, reportIds, createdAt: point.createdAt, updatedAt: point.updatedAt, translation: { sourceLanguage: existing?.translation?.sourceLanguage ?? "en" as const, sourceUpdatedAt: point.updatedAt, status: "pending" as const, attempts: 0 } };
     if (existing) {
       if (existing.project && !sameProject(existing.project, point.project)) throw new ConvexError("A SWOT point cannot be moved between projects");
       await ctx.db.patch(existing._id, value);

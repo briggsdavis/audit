@@ -19,7 +19,10 @@ export function useAuditSession() {
     queueMicrotask(() => setToken(localStorage.getItem("audit-session")));
   }, []);
   useEffect(() => {
-    if (token && sessionAccess === null) localStorage.removeItem("audit-session");
+    if (token && sessionAccess === null) {
+      localStorage.removeItem("audit-session");
+      queueMicrotask(() => setToken(null));
+    }
   }, [token, sessionAccess]);
 
   const signIn = async (event: FormEvent) => {
