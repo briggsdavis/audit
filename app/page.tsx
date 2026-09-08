@@ -19,6 +19,7 @@ import {
   CONTENT_TYPE_LABELS,
   EMPTY_REPORT,
   filterAndSortReports,
+  localizeReport,
   PLATFORMS,
   PLATFORM_LABELS,
   PROJECTS,
@@ -73,6 +74,8 @@ export default function Home() {
   const saveReport = useMutation(api.reports.save);
   const removeReports = useMutation(api.reports.remove);
   const removeWebsiteContentType = useMutation(api.reports.removeWebsiteContentType);
+  const backfillTranslations = useMutation(api.translations.backfillProject);
+  const [backfillingTranslations, setBackfillingTranslations] = useState(false);
   const allowedProjects = useMemo(() => PROJECTS.filter((project) => access?.projects.includes(project)), [access]);
   const currentProject = activeProject && allowedProjects.includes(activeProject) ? activeProject : null;
   const canEdit = access?.canEdit ?? false;
@@ -82,6 +85,7 @@ export default function Home() {
   const reports = useMemo(() => (remoteReports ?? []) as Report[], [remoteReports]);
   const projectReports = useMemo(() => currentProject ? reportsForProject(reports, currentProject) : [], [currentProject, reports]);
   const t = COPY[language];
+  const displayedActive = active ? localizeReport(active, language) : null;
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -95,12 +99,12 @@ export default function Home() {
     if (projectTransitionTimer.current !== null) window.clearTimeout(projectTransitionTimer.current);
   }, []);
 
-  const visible = useMemo(() => filterAndSortReports(projectReports, {
+  const visible = useMemo(() => filterAndSortReports(projectReports.map((report) => localizeReport(report, language)), {
     query,
     platform: platformFilter,
     contentTypes: filters.contentType,
     valueTypes: filters.valueType,
-  }), [projectReports, query, platformFilter, filters]);
+  }), [projectReports, query, platformFilter, filters, language]);
   const websiteTypesForDraft = useMemo(() => {
     if (!draft) return [];
     return (remoteWebsiteContentTypes ?? []).filter((item) => item.project === draft.project).map((item) => item.name);
@@ -188,17 +192,17 @@ export default function Home() {
     <AppHeader language={language} project={currentProject} projects={allowedProjects} canEdit={canEdit} copy={t} onLanguage={changeLanguage} onProject={chooseProject} onLogout={async () => { await signOut(); setActiveProject(null); setChoosingViaProject(false); }} />
     <div className={`workspace-split ${projectTransitioning ? "project-exit" : ""}`} key={currentProject}>
     <section className="workspace reports-pane">
-      <div className="title-row"><div><p className="eyebrow">{currentProject}</p><h1>{t.reports} <span>{projectReports.length}</span></h1></div>{canEdit && <button className="primary add" onClick={openNew}><b>＋</b> {t.newReport}</button>}</div>
+      <div className="title-row"><div><p className="eyebrow">{currentProject}</p><h1>{t.reports} <span>{projectReports.length}</span></h1></div>{canEdit && <div className="title-actions"><button className="secondary" disabled={backfillingTranslations} onClick={async () => { if (!sessionToken || !currentProject) return; setBackfillingTranslations(true); try { await backfillTranslations({ token: sessionToken, project: currentProject }); } finally { setBackfillingTranslations(false); } }}>{backfillingTranslations ? (language === "ro" ? "Se pregătește…" : "Preparing…") : (language === "ro" ? "Tradu conținutul existent" : "Translate existing content")}</button><button className="primary add" onClick={openNew}><b>＋</b> {t.newReport}</button></div>}</div>
       <ReportToolbar language={language} copy={t} query={query} platform={platformFilter} contentTypes={filters.contentType} valueTypes={filters.valueType} availableContentTypes={availableContentTypes} canEdit={canEdit} selectMode={selectMode} view={view} onQuery={setQuery} onPlatform={setPlatformFilter} onToggleFilter={toggleFilter} onSelectMode={() => { setSelectMode(!selectMode); setSelected([]); }} onView={setView} />
       {Object.values(filters).flat().length > 0 && <div className="chips">{(Object.entries(filters) as [keyof typeof filters, string[]][]).flatMap(([group, values]) => values.map((value) => <button key={group + value} className={`chip ${group}`} onClick={() => toggleFilter(group, value)}>{group === "contentType" ? CONTENT_TYPE_LABELS[language][value] ?? value : value === "brand" ? t.brandValue : value === "sales" ? t.salesValue : t.entertainmentValue} ×</button>))}<button className="clear" onClick={() => setFilters({ contentType: [], valueType: [] })}>{t.clearAll}</button></div>}
       {canEdit && selectMode && <div className="selection-bar"><span><b key={selected.length}>{selected.length}</b> {language === "ro" ? (selected.length === 1 ? "selectat" : "selectate") : t.selected}</span><button disabled={!selected.length} onClick={() => setConfirmDelete(true)}>{t.delete}</button></div>}
-      <ReportCollection reports={visible} totalReports={projectReports.length} language={language} copy={t} canCreate={canEdit} view={view} transitionKey={`${view}-${query}-${platformFilter ?? "all"}-${JSON.stringify(filters)}`} selected={selected} selectMode={canEdit && selectMode} onSelect={(reportId) => setSelected((current) => current.includes(reportId) ? current.filter((id) => id !== reportId) : [...current, reportId])} onOpen={openReport} onCreate={openNew} />
+      <ReportCollection reports={visible} totalReports={projectReports.length} language={language} copy={t} canCreate={canEdit} view={view} transitionKey={`${view}-${query}-${platformFilter ?? "all"}-${JSON.stringify(filters)}`} selected={selected} selectMode={canEdit && selectMode} onSelect={(reportId) => setSelected((current) => current.includes(reportId) ? current.filter((id) => id !== reportId) : [...current, reportId])} onOpen={(report) => { const original = projectReports.find((item) => item.id === report.id); if (original) openReport(original); }} onCreate={openNew} />
     </section>
     {sessionToken && <SwotWorkspace key={currentProject} token={sessionToken} language={language} project={currentProject} reports={projectReports} canEdit={canEdit} onOpenReport={(reportId) => { const report = projectReports.find((item) => item.id === reportId); if (report) openReport(report); }} />}
     </div>
 
-    {active && draft && <div className={`modal-backdrop ${modalClosing ? "closing" : ""}`} onMouseDown={(e) => e.target === e.currentTarget && closeModal()}><section className="modal" role="dialog" aria-modal="true">
-      <div className="modal-head"><div><p className="eyebrow">{reports.some((r) => r.id === active.id) ? t.reportDetail : t.newReport}</p><h2>{editing ? (reports.some((r) => r.id === active.id) ? t.editReport : t.createAReport) : active.title}</h2></div><div>{canEdit && !editing && <button className="secondary" onClick={() => { setActiveValueTypes(valueTypesFor(active)); setEditing(true); }}>{t.edit}</button>}{editing && reports.some((r) => r.id === active.id) && <button className="secondary" onClick={() => { setDraft({ ...active }); setActiveValueTypes(valueTypesFor(active)); setEditing(false); }}>{t.cancel}</button>}<button className="close" aria-label={t.close} onClick={closeModal}>×</button></div></div>
+    {active && draft && displayedActive && <div className={`modal-backdrop ${modalClosing ? "closing" : ""}`} onMouseDown={(e) => e.target === e.currentTarget && closeModal()}><section className="modal" role="dialog" aria-modal="true">
+      <div className="modal-head"><div><p className="eyebrow">{reports.some((r) => r.id === active.id) ? t.reportDetail : t.newReport}</p><h2>{editing ? (reports.some((r) => r.id === active.id) ? t.editReport : t.createAReport) : displayedActive.title}</h2></div><div>{canEdit && !editing && <button className="secondary" onClick={() => { setActiveValueTypes(valueTypesFor(active)); setEditing(true); }}>{t.edit}</button>}{editing && reports.some((r) => r.id === active.id) && <button className="secondary" onClick={() => { setDraft({ ...active }); setActiveValueTypes(valueTypesFor(active)); setEditing(false); }}>{t.cancel}</button>}<button className="close" aria-label={t.close} onClick={closeModal}>×</button></div></div>
       {editing ? <form className="report-form" onSubmit={(e) => { e.preventDefault(); save(); }}>
         <div className="form-grid"><div className="wide"><label className="field-label">{t.reportTitle} *</label><input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder={t.titlePlaceholder} required /></div>
           <div className="wide"><label className="field-label">{t.project}</label><div className="form-project-context"><ProjectLogo project={draft.project} /><strong>{draft.project}</strong></div></div>
@@ -217,10 +221,10 @@ export default function Home() {
         <div><label className="field-label">{t.improvementLabel} *</label><textarea rows={5} value={draft.improvement} onChange={(e) => setDraft({ ...draft, improvement: e.target.value })} placeholder={t.improvementPlaceholder} required /></div>
         <ImageDropZone label={t.exampleScreenshots} images={draft.examples} token={sessionToken!} copy={t} onChange={(examples) => setDraft({ ...draft, examples })} />
         {saveError && <p className="form-error">{t.saveError}</p>}<div className="form-footer"><span>* {t.requiredFields}</span><button type="button" className="secondary" onClick={closeModal}>{t.cancel}</button><button type="submit" className={`primary save-button ${saveSuccess ? "success" : ""}`} disabled={saving || saveSuccess}>{saving ? t.saving : saveSuccess ? (language === "ro" ? "✓ Salvat" : "✓ Saved") : reports.some((r) => r.id === draft.id) ? t.saveChanges : t.createReport}</button></div>
-      </form> : <div className="report-detail"><div className="detail-meta"><div><label>{t.project}</label><strong className="detail-project"><ProjectLogo project={active.project} /><span>{active.project}</span></strong></div><div><label>{t.platform}</label><strong>{PLATFORM_LABELS[language][active.platform]}</strong></div><div><label>{t.contentType}</label><strong>{CONTENT_TYPE_LABELS[language][active.contentType] ?? active.contentType}</strong></div><div><label>{t.lastUpdated}</label><strong>{new Date(active.updatedAt).toLocaleDateString(language === "ro" ? "ro-RO" : "en-GB")}</strong></div></div>
-        {(active.brandValue || active.salesValue || active.entertainmentValue) && <div className="value-comment-detail"><p className="detail-section-label">{t.commentTopics}</p><div>{active.brandValue && <div className="brand"><div><span className="value-icon"><ValueIcon type="brand" /></span><label>{t.brandValue}</label>{active.brandGrade !== null && <strong>{active.brandGrade}<small>/10</small></strong>}</div><p>{active.brandValue}</p></div>}{active.salesValue && <div className="sales"><div><span className="value-icon"><ValueIcon type="sales" /></span><label>{t.salesValue}</label>{active.salesGrade !== null && <strong>{active.salesGrade}<small>/10</small></strong>}</div><p>{active.salesValue}</p></div>}{active.entertainmentValue && <div className="entertainment"><div><span className="value-icon"><ValueIcon type="entertainment" /></span><label>{t.entertainmentValue}</label>{active.entertainmentGrade !== null && <strong>{active.entertainmentGrade}<small>/10</small></strong>}</div><p>{active.entertainmentValue}</p></div>}</div></div>}
+      </form> : <div className="report-detail"><div className="detail-meta"><div><label>{t.project}</label><strong className="detail-project"><ProjectLogo project={active.project} /><span>{active.project}</span></strong></div><div><label>{t.platform}</label><strong>{PLATFORM_LABELS[language][active.platform]}</strong></div><div><label>{t.contentType}</label><strong>{CONTENT_TYPE_LABELS[language][displayedActive.contentType] ?? displayedActive.contentType}</strong></div><div><label>{t.lastUpdated}</label><strong>{new Date(active.updatedAt).toLocaleDateString(language === "ro" ? "ro-RO" : "en-GB")}</strong></div></div>
+        {(displayedActive.brandValue || displayedActive.salesValue || displayedActive.entertainmentValue) && <div className="value-comment-detail"><p className="detail-section-label">{t.commentTopics}</p><div>{displayedActive.brandValue && <div className="brand"><div><span className="value-icon"><ValueIcon type="brand" /></span><label>{t.brandValue}</label>{active.brandGrade !== null && <strong>{active.brandGrade}<small>/10</small></strong>}</div><p>{displayedActive.brandValue}</p></div>}{displayedActive.salesValue && <div className="sales"><div><span className="value-icon"><ValueIcon type="sales" /></span><label>{t.salesValue}</label>{active.salesGrade !== null && <strong>{active.salesGrade}<small>/10</small></strong>}</div><p>{displayedActive.salesValue}</p></div>}{displayedActive.entertainmentValue && <div className="entertainment"><div><span className="value-icon"><ValueIcon type="entertainment" /></span><label>{t.entertainmentValue}</label>{active.entertainmentGrade !== null && <strong>{active.entertainmentGrade}<small>/10</small></strong>}</div><p>{displayedActive.entertainmentValue}</p></div>}</div></div>}
         {active.evidence.length > 0 && <div className="detail-images">{active.evidence.map((img, i) => <img key={img.storageId} src={img.url} alt={`${t.screenshots} ${i + 1}`} />)}</div>}
-        <div className="detail-block improvement"><label>{t.improvementLabel}</label><p>{active.improvement}</p></div>{active.examples.length > 0 && <><p className="detail-section-label">{t.exampleScreenshots}</p><div className="detail-images">{active.examples.map((img, i) => <img key={img.storageId} src={img.url} alt={`${t.exampleScreenshots} ${i + 1}`} />)}</div></>}{active.url && <a className="source-link" href={active.url} target="_blank" rel="noreferrer">{t.openSource} ↗</a>}
+        <div className="detail-block improvement"><label>{t.improvementLabel}</label><p>{displayedActive.improvement}</p></div>{active.examples.length > 0 && <><p className="detail-section-label">{t.exampleScreenshots}</p><div className="detail-images">{active.examples.map((img, i) => <img key={img.storageId} src={img.url} alt={`${t.exampleScreenshots} ${i + 1}`} />)}</div></>}{active.url && <a className="source-link" href={active.url} target="_blank" rel="noreferrer">{t.openSource} ↗</a>}
       </div>}
     </section></div>}
     {confirmClose && <Confirm title={t.discardTitle} body={t.discardBody} confirm={t.discardConfirm} cancel={t.cancel} onCancel={() => setConfirmClose(false)} onConfirm={() => { setConfirmClose(false); dismissModal(); }} />}

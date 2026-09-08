@@ -16,6 +16,10 @@ export type ImageDropZoneCopy = {
   removeImage: string;
 };
 
+const MAX_IMAGES_PER_SECTION = 10;
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
 export function ImageDropZone({ label, images, token, copy, onChange }: { label: string; images: ImageAsset[]; token: string; copy: ImageDropZoneCopy; onChange: (next: ImageAsset[]) => void }) {
   const input = useRef<HTMLInputElement>(null);
   const generateUploadUrl = useMutation(api.reports.generateUploadUrl);
@@ -23,7 +27,8 @@ export function ImageDropZone({ label, images, token, copy, onChange }: { label:
   const [uploadError, setUploadError] = useState(false);
 
   const add = async (files: FileList | File[]) => {
-    const valid = Array.from(files).filter((file) => ["image/jpeg", "image/png", "image/webp"].includes(file.type));
+    const available = Math.max(0, MAX_IMAGES_PER_SECTION - images.length);
+    const valid = Array.from(files).filter((file) => ALLOWED_IMAGE_TYPES.has(file.type) && file.size <= MAX_IMAGE_SIZE_BYTES).slice(0, available);
     if (!valid.length) return;
     setUploading(true); setUploadError(false);
     try {

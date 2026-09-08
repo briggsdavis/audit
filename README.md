@@ -30,6 +30,15 @@ and production deployments:
 `AUDIT_PASSCODE` remains supported as a legacy alias for the editor passcode.
 Do not expose these values through `NEXT_PUBLIC_` variables or client-side code.
 
+## Translation
+
+User-entered report and SWOT text is translated in the background immediately
+after each save. Set `OPENAI_API_KEY` only in the Convex deployment environment
+after deployment. Never add it to Vercel, `.env.local`, source control, or a
+`NEXT_PUBLIC_` variable. `OPENAI_TRANSLATION_MODEL` is optional and defaults to
+`gpt-5.6-luna`. An editor can use the protected backfill function to queue
+existing records after the key is configured.
+
 ## Vercel
 
 Import this directory into Vercel and add a `CONVEX_DEPLOY_KEY` environment

@@ -1,7 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { publicProjectName } from "./projects";
 
-export const ACCESS_VERSION = 2;
+export const ACCESS_VERSION = 3;
 
 export const accessLevelValidator = v.union(
   v.literal("editor"),

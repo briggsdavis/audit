@@ -1,10 +1,14 @@
 import { ConvexError, v } from "convex/values";
+import { internal } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
 import { projectValidator, publicProjectName, requireProject, sameProject, storedProjectNames } from "./lib/projects";
 import { requireSession } from "./lib/sessions";
 import { quadrantValidator, swotPointResultValidator } from "./lib/validators";
+import { enforceWriteRateLimit } from "./lib/rateLimits";
 
 const MAX_PROJECT_RECORDS = 5_000;
+const MAX_TITLE_LENGTH = 500;
+const MAX_ANALYSIS_LENGTH = 10_000;
 
 export const list = query({
   args: { token: v.string(), project: projectValidator },
@@ -33,6 +37,7 @@ export const list = query({
       reportIds: point.reportIds,
       createdAt: point.createdAt,
       updatedAt: point.updatedAt,
+      translation: point.translation,
     }));
   },
 });
@@ -55,9 +60,11 @@ export const save = mutation({
   handler: async (ctx, { token, point }) => {
     requireProject(point.project);
     await requireSession(ctx, token, { project: point.project, write: true });
+    await enforceWriteRateLimit(ctx, token);
     const title = point.title.trim();
     const analysis = point.analysis.trim();
     if (!title || !analysis) throw new ConvexError("Title and analysis are required");
+    if (title.length > MAX_TITLE_LENGTH || analysis.length > MAX_ANALYSIS_LENGTH) throw new ConvexError("Analysis text is too long");
     const reportIds = [...new Set(point.reportIds)];
     for (const reportId of reportIds) {
       const report = await ctx.db.query("reports").withIndex("by_external_id", (q) => q.eq("externalId", reportId)).unique();
@@ -70,6 +77,7 @@ export const save = mutation({
       await ctx.db.patch(existing._id, value);
     }
     else await ctx.db.insert("swotPoints", { externalId: point.id, ...value });
+    await ctx.scheduler.runAfter(0, internal.translations.translateSwot, { id: point.id, sourceUpdatedAt: point.updatedAt });
     return null;
   },
 });

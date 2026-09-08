@@ -1,8 +1,11 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
+import { mutation, query, type MutationCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { publicProjectName, requireProject, sameProject, storedProjectNames } from "./lib/projects";
 import { requireSession } from "./lib/sessions";
 import { reportResultValidator } from "./lib/validators";
+import { enforceWriteRateLimit } from "./lib/rateLimits";
 
 const reportFields = {
   id: v.string(),
@@ -26,6 +29,12 @@ const reportFields = {
 };
 
 const MAX_PROJECT_RECORDS = 5_000;
+const MAX_TITLE_LENGTH = 500;
+const MAX_TEXT_LENGTH = 10_000;
+const MAX_URL_LENGTH = 2_048;
+const MAX_IMAGES_PER_SECTION = 10;
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const contentTypes: Record<string, Set<string>> = {
   Instagram: new Set(["Carousel", "Post", "Reel"]),
   TikTok: new Set(["Carousel", "Video"]),
@@ -34,6 +43,31 @@ const contentTypes: Record<string, Set<string>> = {
 
 function normalizeWebsiteContentType(value: string) {
   return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("en-US");
+}
+
+function requireText(value: string, name: string, maxLength: number, required = false) {
+  if (value.length > maxLength) throw new ConvexError(`${name} is too long`);
+  if (required && !value.trim()) throw new ConvexError(`${name} is required`);
+}
+
+function validateSourceUrl(value: string) {
+  if (value.length > MAX_URL_LENGTH) throw new ConvexError("Source URL is too long");
+  if (!value) return;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" && url.protocol !== "http:") throw new Error("unsafe scheme");
+  } catch {
+    throw new ConvexError("Source URL must be a valid http or https URL");
+  }
+}
+
+async function validateImages(ctx: MutationCtx, ids: readonly Id<"_storage">[]) {
+  if (ids.length > MAX_IMAGES_PER_SECTION) throw new ConvexError(`A maximum of ${MAX_IMAGES_PER_SECTION} images is allowed per section`);
+  if (new Set(ids).size !== ids.length) throw new ConvexError("Duplicate images are not allowed");
+  for (const storageId of ids) {
+    const file = await ctx.db.system.get(storageId);
+    if (!file || !file.contentType || !ALLOWED_IMAGE_TYPES.has(file.contentType) || file.size > MAX_IMAGE_SIZE_BYTES) throw new ConvexError("Images must be JPEG, PNG, or WebP files no larger than 10 MB");
+  }
 }
 
 export const list = query({
@@ -65,6 +99,7 @@ export const list = query({
       createdAt: report.createdAt,
       updatedAt: report.updatedAt,
       order: report.order,
+      translation: report.translation,
     })));
   },
 });
@@ -108,13 +143,21 @@ export const save = mutation({
   handler: async (ctx, { token, report }) => {
     requireProject(report.project);
     await requireSession(ctx, token, { project: report.project, write: true });
-    if (!report.title.trim() || !report.improvement.trim()) throw new ConvexError("Required fields are missing");
+    await enforceWriteRateLimit(ctx, token);
+    requireText(report.title, "Report title", MAX_TITLE_LENGTH, true);
+    requireText(report.improvement, "Improvement", MAX_TEXT_LENGTH, true);
+    requireText(report.brandValue ?? "", "Brand value", MAX_TEXT_LENGTH);
+    requireText(report.salesValue ?? "", "Sales value", MAX_TEXT_LENGTH);
+    requireText(report.entertainmentValue ?? "", "Entertainment value", MAX_TEXT_LENGTH);
+    validateSourceUrl(report.url.trim());
+    await validateImages(ctx, report.evidence);
+    await validateImages(ctx, report.examples);
     for (const grade of [report.brandGrade, report.salesGrade, report.entertainmentGrade]) {
       if (grade !== undefined && grade !== null && (!Number.isInteger(grade) || grade < 1 || grade > 10)) throw new ConvexError("Grades must be whole numbers from 1 to 10");
     }
     let contentType = report.contentType.trim();
     if (report.platform === "Website") {
-      if (!contentType || contentType.length > 80) throw new ConvexError("A valid website content type is required");
+      if (!contentType || contentType.length > 120) throw new ConvexError("A valid website content type is required");
       const normalizedName = normalizeWebsiteContentType(contentType);
       let savedType = null;
       for (const storedProject of storedProjectNames(report.project)) {
@@ -146,6 +189,7 @@ export const save = mutation({
     } else {
       await ctx.db.insert("reports", value);
     }
+    await ctx.scheduler.runAfter(0, internal.translations.translateReport, { id: report.id, sourceUpdatedAt: report.updatedAt });
     return null;
   },
 });
@@ -189,6 +233,12 @@ export const generateUploadUrl = mutation({
   returns: v.string(),
   handler: async (ctx, { token }) => {
     await requireSession(ctx, token, { write: true });
+    const now = Date.now();
+    const existing = await ctx.db.query("uploadRateLimits").withIndex("by_session_token", (q) => q.eq("sessionToken", token)).unique();
+    if (existing && now - existing.windowStartedAt < 60 * 60 * 1000 && existing.count >= 30) throw new ConvexError("Too many upload attempts. Please try again later.");
+    if (existing && now - existing.windowStartedAt < 60 * 60 * 1000) await ctx.db.patch(existing._id, { count: existing.count + 1, updatedAt: now });
+    else if (existing) await ctx.db.patch(existing._id, { count: 1, windowStartedAt: now, updatedAt: now });
+    else await ctx.db.insert("uploadRateLimits", { sessionToken: token, count: 1, windowStartedAt: now, updatedAt: now });
     return await ctx.storage.generateUploadUrl();
   },
 });

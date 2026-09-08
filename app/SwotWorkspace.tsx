@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
-import type { Language, Project, Quadrant, Report, SwotPoint } from "./lib/domain";
+import { localizeReport, localizeSwotPoint, type Language, type Project, type Quadrant, type Report, type SwotPoint } from "./lib/domain";
 
 const QUADRANTS: Quadrant[] = ["strength", "weakness", "opportunity", "threat"];
 const COPY = {
@@ -25,6 +25,7 @@ export function SwotWorkspace({ token, language, project, reports, canEdit, onOp
   const [active, setActive] = useState<SwotPoint | null>(null);
   const [draft, setDraft] = useState<SwotPoint | null>(null);
   const [editingOriginal, setEditingOriginal] = useState<SwotPoint | null>(null);
+  const displayedActive = active ? localizeSwotPoint(active, language) : null;
   const [evidenceQuery, setEvidenceQuery] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -35,7 +36,7 @@ export function SwotWorkspace({ token, language, project, reports, canEdit, onOp
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const shownQuadrants = focused ? [focused] : QUADRANTS;
-  const matchingReports = reports.filter((report) => `${report.title} ${report.project} ${report.platform} ${report.contentType}`.toLocaleLowerCase().includes(evidenceQuery.toLocaleLowerCase()));
+  const matchingReports = reports.filter((report) => { const display = localizeReport(report, language); return `${display.title} ${display.project} ${display.platform} ${display.contentType}`.toLocaleLowerCase().includes(evidenceQuery.toLocaleLowerCase()); });
   const quadrantLabel = (quadrant: Quadrant) => t[quadrant];
   const platformLabel = (platform: string) => language === "ro" ? ({ Advertisement: "Publicitate", Website: "Site web" }[platform] ?? platform) : platform;
   const contentTypeLabel = (contentType: string) => language === "ro" ? ({ Carousel: "Carusel", Post: "Postare", Video: "Videoclip", Image: "Imagine", Website: "Site web" }[contentType] ?? contentType) : contentType;
@@ -90,17 +91,17 @@ export function SwotWorkspace({ token, language, project, reports, canEdit, onOp
         return <section key={quadrant} className={`swot-quadrant ${quadrant}`}>
           <button className="quadrant-head" onClick={() => setFocused(quadrant)}><span><i />{quadrantLabel(quadrant)}</span><b>{quadrantPoints.length} {quadrantPoints.length === 1 ? t.point : t.points}</b><em>↗</em></button>
           <div className="swot-points">
-            {quadrantPoints.map((point) => <button key={point.id} className={`swot-point ${selected.includes(point.id) ? "selected" : ""}`} onClick={() => selectMode ? setSelected((current) => current.includes(point.id) ? current.filter((id) => id !== point.id) : [...current, point.id]) : setActive(point)}>{selectMode && <span className="swot-select-dot">{selected.includes(point.id) ? "✓" : ""}</span>}<span className="point-icon">{point.title.slice(0, 1).toUpperCase()}</span><span className="point-copy"><strong>{point.title}</strong><small>{point.analysis}</small><em>{point.reportIds.length ? `${point.reportIds.length} ${point.reportIds.length === 1 ? t.evidenceOne : t.evidence}` : t.noEvidence}</em></span><b>→</b></button>)}
+            {quadrantPoints.map((point) => { const display = localizeSwotPoint(point, language); return <button key={point.id} className={`swot-point ${selected.includes(point.id) ? "selected" : ""}`} onClick={() => selectMode ? setSelected((current) => current.includes(point.id) ? current.filter((id) => id !== point.id) : [...current, point.id]) : setActive(point)}>{selectMode && <span className="swot-select-dot">{selected.includes(point.id) ? "✓" : ""}</span>}<span className="point-icon">{display.title.slice(0, 1).toUpperCase()}</span><span className="point-copy"><strong>{display.title}</strong><small>{display.analysis}</small><em>{point.reportIds.length ? `${point.reportIds.length} ${point.reportIds.length === 1 ? t.evidenceOne : t.evidence}` : t.noEvidence}</em></span><b>→</b></button>; })}
             {!quadrantPoints.length && <div className="swot-empty"><strong>{t.empty}</strong><span>{t.emptyHint}</span></div>}
           </div>
         </section>;
       })}
     </div>
 
-    {active && <div className={`modal-backdrop ${closingModal === "active" ? "closing" : ""}`} onMouseDown={(event) => event.target === event.currentTarget && closeModal("active")}><section className="modal swot-detail-modal" role="dialog" aria-modal="true">
-      <div className="modal-head"><div><p className="eyebrow">{t.detail}</p><h2>{active.title}</h2></div><div>{canEdit && <button className="secondary" onClick={openEdit}>{t.edit}</button>}<button className="close" aria-label={t.close} onClick={() => closeModal("active")}>×</button></div></div>
-      <div className="swot-detail"><div className={`swot-detail-tag ${active.quadrant}`}><i />{quadrantLabel(active.quadrant)}</div><div className="detail-block"><label>{t.analysis}</label><p>{active.analysis}</p></div><div className="swot-evidence-detail"><label>{t.linkedReports}</label>
-        {active.reportIds.length ? active.reportIds.map((reportId) => { const report = reports.find((item) => item.id === reportId); return report ? <button key={reportId} onClick={() => onOpenReport(reportId)}><span><strong>{report.title}</strong><small>{report.project} · {platformLabel(report.platform)} · {contentTypeLabel(report.contentType)}</small></span><b>{t.openReport} ↗</b></button> : null; }) : <p>{t.noEvidence}</p>}
+    {active && displayedActive && <div className={`modal-backdrop ${closingModal === "active" ? "closing" : ""}`} onMouseDown={(event) => event.target === event.currentTarget && closeModal("active")}><section className="modal swot-detail-modal" role="dialog" aria-modal="true">
+      <div className="modal-head"><div><p className="eyebrow">{t.detail}</p><h2>{displayedActive.title}</h2></div><div>{canEdit && <button className="secondary" onClick={openEdit}>{t.edit}</button>}<button className="close" aria-label={t.close} onClick={() => closeModal("active")}>×</button></div></div>
+      <div className="swot-detail"><div className={`swot-detail-tag ${active.quadrant}`}><i />{quadrantLabel(active.quadrant)}</div><div className="detail-block"><label>{t.analysis}</label><p>{displayedActive.analysis}</p></div><div className="swot-evidence-detail"><label>{t.linkedReports}</label>
+        {active.reportIds.length ? active.reportIds.map((reportId) => { const report = reports.find((item) => item.id === reportId); const display = report ? localizeReport(report, language) : null; return report && display ? <button key={reportId} onClick={() => onOpenReport(reportId)}><span><strong>{display.title}</strong><small>{display.project} · {platformLabel(display.platform)} · {contentTypeLabel(display.contentType)}</small></span><b>{t.openReport} ↗</b></button> : null; }) : <p>{t.noEvidence}</p>}
       </div></div>
     </section></div>}
 
@@ -111,7 +112,7 @@ export function SwotWorkspace({ token, language, project, reports, canEdit, onOp
         <div><label className="field-label">{t.pointTitle} *</label><input required value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder={t.titlePlaceholder} /></div>
         <div><label className="field-label">{t.analysis} *</label><textarea required rows={7} value={draft.analysis} onChange={(event) => setDraft({ ...draft, analysis: event.target.value })} placeholder={t.analysisPlaceholder} /></div>
         <div className="evidence-picker"><label className="field-label">{t.chooseEvidence} <span>{draft.reportIds.length} {language === "ro" && draft.reportIds.length === 1 ? "selectat" : t.selected}</span></label><p>{t.evidenceHint}</p><input value={evidenceQuery} onChange={(event) => setEvidenceQuery(event.target.value)} placeholder={t.search} />
-          <div className="evidence-options">{matchingReports.map((report) => { const selected = draft.reportIds.includes(report.id); return <button type="button" key={report.id} className={selected ? "selected" : ""} onClick={() => setDraft({ ...draft, reportIds: selected ? draft.reportIds.filter((id) => id !== report.id) : [...draft.reportIds, report.id] })}><i>{selected ? "✓" : ""}</i><span><strong>{report.title}</strong><small>{report.project} · {platformLabel(report.platform)} · {contentTypeLabel(report.contentType)}</small></span></button>; })}{!matchingReports.length && <div className="evidence-empty">{t.noReports}</div>}</div>
+          <div className="evidence-options">{matchingReports.map((report) => { const selected = draft.reportIds.includes(report.id); const display = localizeReport(report, language); return <button type="button" key={report.id} className={selected ? "selected" : ""} onClick={() => setDraft({ ...draft, reportIds: selected ? draft.reportIds.filter((id) => id !== report.id) : [...draft.reportIds, report.id] })}><i>{selected ? "✓" : ""}</i><span><strong>{display.title}</strong><small>{display.project} · {platformLabel(display.platform)} · {contentTypeLabel(display.contentType)}</small></span></button>; })}{!matchingReports.length && <div className="evidence-empty">{t.noReports}</div>}</div>
         </div>
         {formError && <p className="form-error">{formError === "required" ? t.required : t.saveError}</p>}
         <div className="form-footer"><span>*</span><button type="button" className="secondary" onClick={() => { if (editingOriginal) { setDraft(null); setActive(editingOriginal); setEditingOriginal(null); } else closeModal("draft"); }}>{t.cancel}</button><button type="submit" className={`primary save-button ${saveSuccess ? "success" : ""}`} disabled={saving || saveSuccess}>{saving ? t.saving : saveSuccess ? (language === "ro" ? "✓ Salvat" : "✓ Saved") : editingOriginal ? t.saveChanges : t.save}</button></div>

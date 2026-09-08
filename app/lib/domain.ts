@@ -40,6 +40,16 @@ export type Quadrant = "strength" | "weakness" | "opportunity" | "threat";
 
 export type ImageAsset = { storageId: Id<"_storage">; url: string };
 
+export type TranslationStatus = "pending" | "complete" | "failed";
+export type ReportTranslation = {
+  sourceLanguage: Language;
+  sourceUpdatedAt: number;
+  status: TranslationStatus;
+  translated?: Pick<Report, "title" | "contentType" | "brandValue" | "salesValue" | "entertainmentValue" | "improvement">;
+  attempts: number;
+  lastError?: string;
+};
+
 export type Report = {
   id: string;
   title: string;
@@ -59,6 +69,7 @@ export type Report = {
   createdAt: number;
   updatedAt: number;
   order: number;
+  translation?: ReportTranslation;
 };
 
 export type SwotPoint = {
@@ -70,7 +81,27 @@ export type SwotPoint = {
   reportIds: string[];
   createdAt: number;
   updatedAt: number;
+  translation?: {
+    sourceLanguage: Language;
+    sourceUpdatedAt: number;
+    status: TranslationStatus;
+    translated?: Pick<SwotPoint, "title" | "analysis">;
+    attempts: number;
+    lastError?: string;
+  };
 };
+
+export function localizeReport(report: Report, language: Language): Report {
+  const translation = report.translation;
+  if (!translation?.translated || translation.status !== "complete" || translation.sourceUpdatedAt !== report.updatedAt || language === translation.sourceLanguage) return report;
+  return { ...report, ...translation.translated };
+}
+
+export function localizeSwotPoint(point: SwotPoint, language: Language): SwotPoint {
+  const translation = point.translation;
+  if (!translation?.translated || translation.status !== "complete" || translation.sourceUpdatedAt !== point.updatedAt || language === translation.sourceLanguage) return point;
+  return { ...point, ...translation.translated };
+}
 
 export const EMPTY_REPORT: Omit<Report, "id" | "createdAt" | "updatedAt" | "order"> = {
   title: "",

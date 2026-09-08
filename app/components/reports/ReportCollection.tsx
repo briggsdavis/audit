@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useRef } from "react";
-import { CONTENT_TYPE_LABELS, PLATFORM_LABELS, valueTypesFor, type Language, type Report, type ValueType } from "../../lib/domain";
+import { CONTENT_TYPE_LABELS, PLATFORM_LABELS, localizeReport, valueTypesFor, type Language, type Report, type ValueType } from "../../lib/domain";
 import { ProjectLogo, ValueIcon } from "../ui/AuditControls";
 
 type CollectionCopy = {
@@ -37,9 +37,10 @@ export function ReportCollection({ reports, totalReports, language, copy, canCre
 
   const valueLabel = (type: ValueType) => type === "brand" ? copy.brandValue : type === "sales" ? copy.salesValue : copy.entertainmentValue;
   return <div ref={collectionRef} key={transitionKey} className={`report-collection ${view} results-transition`}>
-    {reports.map((report, index) => {
+    {reports.map((rawReport, index) => {
+      const report = localizeReport(rawReport, language);
       const reportValueTypes = valueTypesFor(report);
-      return <article key={report.id} onClick={() => selectMode ? onSelect(report.id) : onOpen(report)} className={`${selected.includes(report.id) ? "selected" : ""} ${reportValueTypes.map((type) => `has-${type}`).join(" ")}`}>
+      return <article key={report.id} onClick={() => selectMode ? onSelect(report.id) : onOpen(rawReport)} className={`${selected.includes(report.id) ? "selected" : ""} ${reportValueTypes.map((type) => `has-${type}`).join(" ")}`}>
         {!!reportValueTypes.length && <span className="report-value-hues" aria-hidden="true">{reportValueTypes.map((type) => <i key={type} className={type} />)}</span>}
         {selectMode && <span className="select-dot">{selected.includes(report.id) ? "✓" : ""}</span>}
         <div className={`thumb ${report.platform.toLowerCase()}`}>{report.evidence[0] ? <img src={report.evidence[0].url} alt="" /> : <span>{report.platform.slice(0, 2).toUpperCase()}</span>}</div>

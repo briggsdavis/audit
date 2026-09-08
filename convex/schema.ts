@@ -2,6 +2,33 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import { accessLevelValidator } from "./lib/access";
 
+const translatedReportFields = v.object({
+  title: v.string(),
+  contentType: v.string(),
+  brandValue: v.string(),
+  salesValue: v.string(),
+  entertainmentValue: v.string(),
+  improvement: v.string(),
+});
+
+const reportTranslationValidator = v.object({
+  sourceLanguage: v.union(v.literal("en"), v.literal("ro")),
+  sourceUpdatedAt: v.number(),
+  status: v.union(v.literal("pending"), v.literal("complete"), v.literal("failed")),
+  translated: v.optional(translatedReportFields),
+  attempts: v.number(),
+  lastError: v.optional(v.string()),
+});
+
+const swotTranslationValidator = v.object({
+  sourceLanguage: v.union(v.literal("en"), v.literal("ro")),
+  sourceUpdatedAt: v.number(),
+  status: v.union(v.literal("pending"), v.literal("complete"), v.literal("failed")),
+  translated: v.optional(v.object({ title: v.string(), analysis: v.string() })),
+  attempts: v.number(),
+  lastError: v.optional(v.string()),
+});
+
 export default defineSchema({
   sessions: defineTable({
     token: v.string(),
@@ -32,6 +59,7 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
     order: v.number(),
+    translation: v.optional(reportTranslationValidator),
   }).index("by_external_id", ["externalId"]).index("by_project", ["project"]),
   websiteContentTypes: defineTable({
     project: v.string(),
@@ -48,5 +76,25 @@ export default defineSchema({
     reportIds: v.array(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
+    translation: v.optional(swotTranslationValidator),
   }).index("by_external_id", ["externalId"]).index("by_project", ["project"]).index("by_quadrant", ["quadrant"]),
+  loginRateLimits: defineTable({
+    key: v.string(),
+    attempts: v.number(),
+    windowStartedAt: v.number(),
+    blockedUntil: v.number(),
+    updatedAt: v.number(),
+  }).index("by_key", ["key"]),
+  uploadRateLimits: defineTable({
+    sessionToken: v.string(),
+    windowStartedAt: v.number(),
+    count: v.number(),
+    updatedAt: v.number(),
+  }).index("by_session_token", ["sessionToken"]),
+  writeRateLimits: defineTable({
+    sessionToken: v.string(),
+    windowStartedAt: v.number(),
+    count: v.number(),
+    updatedAt: v.number(),
+  }).index("by_session_token", ["sessionToken"]),
 });
