@@ -41,11 +41,13 @@ export type Quadrant = "strength" | "weakness" | "opportunity" | "threat";
 export type ImageAsset = { storageId: Id<"_storage">; url: string };
 
 export type TranslationStatus = "pending" | "complete" | "failed";
+type ReportTextField = "title" | "contentType" | "brandValue" | "salesValue" | "entertainmentValue" | "improvement";
 export type ReportTranslation = {
   sourceLanguage: Language;
   sourceUpdatedAt: number;
   status: TranslationStatus;
   translated?: Pick<Report, "title" | "contentType" | "brandValue" | "salesValue" | "entertainmentValue" | "improvement">;
+  localized?: Record<Language, Pick<Report, ReportTextField>>;
   attempts: number;
   lastError?: string;
 };
@@ -86,6 +88,7 @@ export type SwotPoint = {
     sourceUpdatedAt: number;
     status: TranslationStatus;
     translated?: Pick<SwotPoint, "title" | "analysis">;
+    localized?: Record<Language, Pick<SwotPoint, "title" | "analysis">>;
     attempts: number;
     lastError?: string;
   };
@@ -93,13 +96,17 @@ export type SwotPoint = {
 
 export function localizeReport(report: Report, language: Language): Report {
   const translation = report.translation;
-  if (!translation?.translated || translation.status !== "complete" || translation.sourceUpdatedAt !== report.updatedAt || language === translation.sourceLanguage) return report;
+  if (!translation || translation.status !== "complete" || translation.sourceUpdatedAt !== report.updatedAt) return report;
+  if (translation.localized) return { ...report, ...translation.localized[language] };
+  if (!translation.translated || language === translation.sourceLanguage) return report;
   return { ...report, ...translation.translated };
 }
 
 export function localizeSwotPoint(point: SwotPoint, language: Language): SwotPoint {
   const translation = point.translation;
-  if (!translation?.translated || translation.status !== "complete" || translation.sourceUpdatedAt !== point.updatedAt || language === translation.sourceLanguage) return point;
+  if (!translation || translation.status !== "complete" || translation.sourceUpdatedAt !== point.updatedAt) return point;
+  if (translation.localized) return { ...point, ...translation.localized[language] };
+  if (!translation.translated || language === translation.sourceLanguage) return point;
   return { ...point, ...translation.translated };
 }
 

@@ -11,11 +11,27 @@ const translatedReportFields = v.object({
   improvement: v.string(),
 });
 
+const fieldTranslationValidator = v.object({
+  sourceLanguage: v.union(v.literal("en"), v.literal("ro")),
+  translated: v.string(),
+});
+
+const reportFieldTranslations = v.object({
+  title: fieldTranslationValidator,
+  contentType: fieldTranslationValidator,
+  brandValue: fieldTranslationValidator,
+  salesValue: fieldTranslationValidator,
+  entertainmentValue: fieldTranslationValidator,
+  improvement: fieldTranslationValidator,
+});
+
 const reportTranslationValidator = v.object({
   sourceLanguage: v.union(v.literal("en"), v.literal("ro")),
   sourceUpdatedAt: v.number(),
   status: v.union(v.literal("pending"), v.literal("complete"), v.literal("failed")),
   translated: v.optional(translatedReportFields),
+  fields: v.optional(reportFieldTranslations),
+  localized: v.optional(v.object({ en: translatedReportFields, ro: translatedReportFields })),
   attempts: v.number(),
   lastError: v.optional(v.string()),
 });
@@ -25,6 +41,11 @@ const swotTranslationValidator = v.object({
   sourceUpdatedAt: v.number(),
   status: v.union(v.literal("pending"), v.literal("complete"), v.literal("failed")),
   translated: v.optional(v.object({ title: v.string(), analysis: v.string() })),
+  fields: v.optional(v.object({ title: fieldTranslationValidator, analysis: fieldTranslationValidator })),
+  localized: v.optional(v.object({
+    en: v.object({ title: v.string(), analysis: v.string() }),
+    ro: v.object({ title: v.string(), analysis: v.string() }),
+  })),
   attempts: v.number(),
   lastError: v.optional(v.string()),
 });

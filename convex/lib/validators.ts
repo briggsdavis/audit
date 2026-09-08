@@ -7,6 +7,7 @@ export const imageAssetValidator = v.object({
 
 const translationStatusValidator = v.union(v.literal("pending"), v.literal("complete"), v.literal("failed"));
 const languageValidator = v.union(v.literal("en"), v.literal("ro"));
+const fieldTranslationValidator = v.object({ sourceLanguage: languageValidator, translated: v.string() });
 
 export const reportTranslationValidator = v.object({
   sourceLanguage: languageValidator,
@@ -20,6 +21,18 @@ export const reportTranslationValidator = v.object({
     entertainmentValue: v.string(),
     improvement: v.string(),
   })),
+  fields: v.optional(v.object({
+    title: fieldTranslationValidator,
+    contentType: fieldTranslationValidator,
+    brandValue: fieldTranslationValidator,
+    salesValue: fieldTranslationValidator,
+    entertainmentValue: fieldTranslationValidator,
+    improvement: fieldTranslationValidator,
+  })),
+  localized: v.optional(v.object({
+    en: v.object({ title: v.string(), contentType: v.string(), brandValue: v.string(), salesValue: v.string(), entertainmentValue: v.string(), improvement: v.string() }),
+    ro: v.object({ title: v.string(), contentType: v.string(), brandValue: v.string(), salesValue: v.string(), entertainmentValue: v.string(), improvement: v.string() }),
+  })),
   attempts: v.number(),
   lastError: v.optional(v.string()),
 });
@@ -29,6 +42,11 @@ export const swotTranslationValidator = v.object({
   sourceUpdatedAt: v.number(),
   status: translationStatusValidator,
   translated: v.optional(v.object({ title: v.string(), analysis: v.string() })),
+  fields: v.optional(v.object({ title: fieldTranslationValidator, analysis: fieldTranslationValidator })),
+  localized: v.optional(v.object({
+    en: v.object({ title: v.string(), analysis: v.string() }),
+    ro: v.object({ title: v.string(), analysis: v.string() }),
+  })),
   attempts: v.number(),
   lastError: v.optional(v.string()),
 });
