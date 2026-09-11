@@ -63,6 +63,7 @@ export default defineSchema({
     externalId: v.string(),
     title: v.string(),
     project: v.string(),
+    phase: v.optional(v.union(v.literal("phase1"), v.literal("phase2"))),
     platform: v.string(),
     contentType: v.string(),
     brandValue: v.optional(v.string()),
@@ -84,6 +85,7 @@ export default defineSchema({
   }).index("by_external_id", ["externalId"]).index("by_project", ["project"]),
   websiteContentTypes: defineTable({
     project: v.string(),
+    phase: v.optional(v.union(v.literal("phase1"), v.literal("phase2"))),
     name: v.string(),
     normalizedName: v.string(),
     createdAt: v.number(),

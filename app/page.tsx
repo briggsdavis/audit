@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
@@ -7,6 +6,7 @@ import { api } from "../convex/_generated/api";
 import { Confirm, ProjectLogo, ValueCommentEditor, ValueIcon } from "./components/ui/AuditControls";
 import { ImageDropZone } from "./components/reports/ImageDropZone";
 import { ReportCollection } from "./components/reports/ReportCollection";
+import { ReportDetail } from "./components/reports/ReportDetail";
 import { ReportToolbar } from "./components/reports/ReportToolbar";
 import { LoginScreen } from "./components/auth/LoginScreen";
 import { LoginHeroSequence } from "./components/auth/LoginHeroSequence";
@@ -22,6 +22,7 @@ import {
   localizeReport,
   PLATFORMS,
   PLATFORM_LABELS,
+  PHASE_LABELS,
   PROJECTS,
   reportsForProject,
   VALUE_TYPES,
@@ -31,19 +32,22 @@ import {
   type Project,
   type ProjectEntry,
   type Report,
+  type ReportPhase,
   type ValueType,
 } from "./lib/domain";
 import { SwotWorkspace } from "./SwotWorkspace";
 const COPY = {
   en: {
     contentAudit: "Content audit", enterWorkspace: "Welcome back", loginCopy: "A focused place to review, refine and strengthen every project.", passcode: "Passcode", continue: "Continue", secureNote: "Access stays active for 30 days on this device", authError: "That passcode isn’t correct, or the workspace is not configured yet.",
-    logOut: "Log out", viewOnly: "View only", editAccess: "Edit access", reports: "Reports", newReport: "New report", searchReports: "Search reports…", filter: "Filter", project: "Project", chooseProject: "Choose a project", chooseProjectHint: "Select the project workspace you want to open. Each project has its own reports and SWOT analysis.", chooseViaProject: "Choose a Via project", chooseViaProjectHint: "Select the Via project workspace you want to open.", backToProjects: "Back to all projects", switchProject: "Switch project", platform: "Platform", allPlatforms: "All", contentType: "Content type", valueComment: "Value comment", done: "Done", select: "Select", listView: "List view", gridView: "Grid view", clearAll: "Clear all", selected: "selected", delete: "Delete", updated: "Updated", open: "Open", noReportsFound: "No reports found", noReportsYet: "No reports yet", noReportsFiltered: "Try removing a filter or using a different search.", noReportsEmpty: "Create your first content audit report to get started.", noReportsEmptyViewOnly: "There are no reports in this project yet.", createAReport: "Create a report",
+    choosePhase: "Choose a phase", choosePhaseHint: "Open the reporting phase you want to work in for this project.", backToProjectSelection: "Back to project selection", phase: "Phase", available: "Open", comingSoon: "Coming soon", problemAnalysis: "Why it doesn’t work", recommendedSolution: "How to fix it",
+    logOut: "Log out", viewOnly: "View only", editAccess: "Edit access", reports: "Reports", newReport: "New report", searchReports: "Search reports…", filter: "Filter", project: "Project", chooseProject: "Choose a project", chooseProjectHint: "Select a project, then choose the reporting phase you want to open.", chooseViaProject: "Choose a Via project", chooseViaProjectHint: "Select a Via project, then choose its reporting phase.", backToProjects: "Back to all projects", switchProject: "Switch project or phase", platform: "Platform", allPlatforms: "All", contentType: "Content type", valueComment: "Value comment", done: "Done", select: "Select", listView: "List view", gridView: "Grid view", clearAll: "Clear all", selected: "selected", delete: "Delete", updated: "Updated", open: "Open", noReportsFound: "No reports found", noReportsYet: "No reports yet", noReportsFiltered: "Try removing a filter or using a different search.", noReportsEmpty: "Create your first content audit report to get started.", noReportsEmptyViewOnly: "There are no reports in this project yet.", createAReport: "Create a report",
     reportDetail: "Report detail", editReport: "Edit report", edit: "Edit", cancel: "Cancel", close: "Close", reportTitle: "Report title", titlePlaceholder: "A clear, concise description", sourceUrl: "Source URL", optional: "Optional", commentTopics: "Value comments", commentTopicsHint: "Add only the value categories that apply to this report.", addComment: "Add a value comment", removeComment: "Remove comment", grade: "Grade", gradeOutOfTen: "out of 10", brandValue: "Brand value", brandValuePlaceholder: "How does this content affect or express the brand?", salesValue: "Sales value", salesValuePlaceholder: "How does this content support sales or conversion?", entertainmentValue: "Entertainment value", entertainmentValuePlaceholder: "How engaging or entertaining is this content?", screenshots: "Screenshots", improvementLabel: "How to do this better", improvementPlaceholder: "Explain the recommended improvement…", exampleScreenshots: "Example screenshots", requiredFields: "Required fields", saving: "Saving…", saveChanges: "Save changes", createReport: "Create report", lastUpdated: "Last updated", openSource: "Open source", discardTitle: "Discard unsaved changes?", discardBody: "Your edits won’t be saved.", discardConfirm: "Discard changes", deleteBody: "This will remove the selected reports from the audit.", deleteReports: "Delete reports", saveError: "This report could not be saved. Please try again.", websiteTypePlaceholder: "e.g. Home, About, Contact", savedForProject: "Saved for this project", websiteTypeHint: "Enter a page or section name. It will be saved for this project when the report is saved.",
     optionalMultiple: "Optional · multiple allowed", uploading: "Uploading…", dropImages: "Drop images here", browseImages: "or click to browse · JPEG, PNG, WebP", uploadError: "One or more images could not be uploaded. Please try again.", removeImage: "Remove image",
   },
   ro: {
     contentAudit: "Audit de conținut", enterWorkspace: "Bine ai revenit", loginCopy: "Un spațiu dedicat pentru a analiza și îmbunătăți fiecare proiect.", passcode: "Cod de acces", continue: "Continuă", secureNote: "Accesul rămâne activ timp de 30 de zile pe acest dispozitiv", authError: "Codul de acces este incorect sau spațiul de lucru nu este încă configurat.",
-    logOut: "Deconectare", viewOnly: "Doar vizualizare", editAccess: "Acces editare", reports: "Rapoarte", newReport: "Raport nou", searchReports: "Caută în rapoarte…", filter: "Filtre", project: "Proiect", chooseProject: "Alege un proiect", chooseProjectHint: "Selectează spațiul de lucru al proiectului pe care vrei să-l deschizi. Fiecare proiect are propriile rapoarte și propria analiză SWOT.", chooseViaProject: "Alege un proiect Via", chooseViaProjectHint: "Selectează spațiul de lucru Via pe care vrei să-l deschizi.", backToProjects: "Înapoi la toate proiectele", switchProject: "Schimbă proiectul", platform: "Platformă", allPlatforms: "Toate", contentType: "Tip de conținut", valueComment: "Comentariu de valoare", done: "Gata", select: "Selectează", listView: "Vizualizare listă", gridView: "Vizualizare grilă", clearAll: "Elimină toate filtrele", selected: "selectate", delete: "Șterge", updated: "Actualizat", open: "Deschide", noReportsFound: "Niciun raport găsit", noReportsYet: "Nu există încă rapoarte", noReportsFiltered: "Încearcă să elimini un filtru sau să folosești altă căutare.", noReportsEmpty: "Creează primul raport de audit de conținut pentru a începe.", noReportsEmptyViewOnly: "Nu există încă rapoarte în acest proiect.", createAReport: "Creează un raport",
+    choosePhase: "Alege o fază", choosePhaseHint: "Deschide faza de raportare în care vrei să lucrezi pentru acest proiect.", backToProjectSelection: "Înapoi la selectarea proiectului", phase: "Faza", available: "Deschide", comingSoon: "În curând", problemAnalysis: "De ce nu funcționează", recommendedSolution: "Cum se poate remedia",
+    logOut: "Deconectare", viewOnly: "Doar vizualizare", editAccess: "Acces editare", reports: "Rapoarte", newReport: "Raport nou", searchReports: "Caută în rapoarte…", filter: "Filtre", project: "Proiect", chooseProject: "Alege un proiect", chooseProjectHint: "Selectează un proiect, apoi alege faza de raportare pe care vrei să o deschizi.", chooseViaProject: "Alege un proiect Via", chooseViaProjectHint: "Selectează un proiect Via, apoi alege faza sa de raportare.", backToProjects: "Înapoi la toate proiectele", switchProject: "Schimbă proiectul sau faza", platform: "Platformă", allPlatforms: "Toate", contentType: "Tip de conținut", valueComment: "Comentariu de valoare", done: "Gata", select: "Selectează", listView: "Vizualizare listă", gridView: "Vizualizare grilă", clearAll: "Elimină toate filtrele", selected: "selectate", delete: "Șterge", updated: "Actualizat", open: "Deschide", noReportsFound: "Niciun raport găsit", noReportsYet: "Nu există încă rapoarte", noReportsFiltered: "Încearcă să elimini un filtru sau să folosești altă căutare.", noReportsEmpty: "Creează primul raport de audit de conținut pentru a începe.", noReportsEmptyViewOnly: "Nu există încă rapoarte în acest proiect.", createAReport: "Creează un raport",
     reportDetail: "Detalii raport", editReport: "Editează raportul", edit: "Editează", cancel: "Anulează", close: "Închide", reportTitle: "Titlul raportului", titlePlaceholder: "O descriere clară și concisă", sourceUrl: "Adresa URL sursă", optional: "Opțional", commentTopics: "Comentarii de valoare", commentTopicsHint: "Adaugă doar categoriile de valoare relevante pentru acest raport.", addComment: "Adaugă un comentariu de valoare", removeComment: "Elimină comentariul", grade: "Notă", gradeOutOfTen: "din 10", brandValue: "Valoare de brand", brandValuePlaceholder: "Cum influențează sau exprimă acest conținut brandul?", salesValue: "Valoare de vânzări", salesValuePlaceholder: "Cum susține acest conținut vânzările sau conversia?", entertainmentValue: "Valoare de divertisment", entertainmentValuePlaceholder: "Cât de captivant sau distractiv este acest conținut?", screenshots: "Capturi de ecran", improvementLabel: "Cum poate fi îmbunătățit", improvementPlaceholder: "Descrie îmbunătățirea recomandată…", exampleScreenshots: "Capturi de ecran de referință", requiredFields: "Câmpuri obligatorii", saving: "Se salvează…", saveChanges: "Salvează modificările", createReport: "Creează raportul", lastUpdated: "Ultima actualizare", openSource: "Deschide sursa", discardTitle: "Renunți la modificările nesalvate?", discardBody: "Modificările efectuate nu vor fi salvate.", discardConfirm: "Renunță la modificări", deleteBody: "Rapoartele selectate vor fi eliminate din audit.", deleteReports: "Șterge rapoartele", saveError: "Raportul nu a putut fi salvat. Încearcă din nou.", websiteTypePlaceholder: "de ex. Acasă, Despre noi, Contact", savedForProject: "Salvate pentru acest proiect", websiteTypeHint: "Introdu numele unei pagini sau secțiuni. Acesta va fi salvat pentru proiect atunci când salvezi raportul.",
     optionalMultiple: "Opțional · poți adăuga mai multe", uploading: "Se încarcă…", dropImages: "Trage imaginile aici", browseImages: "sau fă clic pentru a le selecta · JPEG, PNG, WebP", uploadError: "Una sau mai multe imagini nu au putut fi încărcate. Încearcă din nou.", removeImage: "Elimină imaginea",
   },
@@ -51,6 +55,8 @@ const COPY = {
 export default function Home() {
   const [language, setLanguage] = useState<Language>("en");
   const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const [pendingProject, setPendingProject] = useState<Project | null>(null);
+  const [activePhase, setActivePhase] = useState<ReportPhase | null>(null);
   const [choosingViaProject, setChoosingViaProject] = useState(false);
   const { token: sessionToken, authenticated, access, passcode, authError, showLoginIntro, setPasscode, signIn, signOut, completeLoginIntro } = useAuditSession();
   const [view, setView] = useState<"list" | "grid">("list");
@@ -79,7 +85,7 @@ export default function Home() {
   const allowedProjects = useMemo(() => PROJECTS.filter((project) => access?.projects.includes(project)), [access]);
   const currentProject = activeProject && allowedProjects.includes(activeProject) ? activeProject : null;
   const canEdit = access?.canEdit ?? false;
-  const projectQuery = typeof sessionToken === "string" && authenticated && currentProject ? { token: sessionToken, project: currentProject } : "skip";
+  const projectQuery = typeof sessionToken === "string" && authenticated && currentProject && activePhase ? { token: sessionToken, project: currentProject, phase: activePhase } : "skip";
   const remoteReports = useQuery(api.reports.list, projectQuery);
   const remoteWebsiteContentTypes = useQuery(api.reports.listWebsiteContentTypes, projectQuery);
   const reports = useMemo(() => (remoteReports ?? []) as Report[], [remoteReports]);
@@ -117,7 +123,8 @@ export default function Home() {
 
   function openNew() {
     if (!currentProject || !canEdit) return;
-    const now = Date.now(); const report: Report = { ...EMPTY_REPORT, project: currentProject, id: crypto.randomUUID(), createdAt: now, updatedAt: now, order: projectReports.length };
+    if (!activePhase) return;
+    const now = Date.now(); const report: Report = { ...EMPTY_REPORT, project: currentProject, phase: activePhase, id: crypto.randomUUID(), createdAt: now, updatedAt: now, order: projectReports.length };
     setModalClosing(false); setSaveSuccess(false);
     setActive(report); setDraft(report); setActiveValueTypes([]); setEditing(true);
   }
@@ -158,16 +165,18 @@ export default function Home() {
     setLanguage(next);
     localStorage.setItem("audit-language", next);
   }
-  function chooseProject(project: Project) {
-    if (!allowedProjects.includes(project)) return;
+  function enterPhase(phase: ReportPhase) {
+    if (!pendingProject || !allowedProjects.includes(pendingProject)) return;
     const applyProject = () => {
-      setActiveProject(project);
+      setActiveProject(pendingProject);
+      setActivePhase(phase);
+      setPendingProject(null);
       setChoosingViaProject(false);
       setPlatformFilter(null);
       setFilters({ contentType: [], valueType: [] });
       setQuery(""); setSelected([]); setSelectMode(false); setActive(null); setDraft(null);
     };
-    if (!activeProject || activeProject === project) { applyProject(); return; }
+    if (!activeProject) { applyProject(); return; }
     setProjectTransitioning(true);
     if (projectTransitionTimer.current !== null) window.clearTimeout(projectTransitionTimer.current);
     projectTransitionTimer.current = window.setTimeout(() => {
@@ -175,34 +184,47 @@ export default function Home() {
       requestAnimationFrame(() => requestAnimationFrame(() => setProjectTransitioning(false)));
     }, 170);
   }
+  function chooseProject(project: Project) {
+    if (!allowedProjects.includes(project)) return;
+    setPendingProject(project);
+  }
   function openProjectEntry(project: ProjectEntry) {
     if (project === "Via Projects") setChoosingViaProject(true);
     else chooseProject(project);
   }
 
+  function chooseAnotherWorkspace(project: Project) {
+    setPendingProject(project);
+    setChoosingViaProject(project.startsWith("Via "));
+    setActiveProject(null);
+    setActivePhase(null);
+    setActive(null);
+    setDraft(null);
+  }
+
   if (authenticated === null) return <main className="auth-shell"><div className="loader" /></main>;
   if (!authenticated) return <LoginScreen language={language} copy={t} passcode={passcode} hasError={authError} onLanguage={changeLanguage} onPasscode={setPasscode} onSubmit={signIn} />;
 
-  if (!currentProject) return <>
-    <ProjectGate intro={showLoginIntro} language={language} copy={t} projects={allowedProjects} choosingVia={choosingViaProject && allowedProjects.some((project) => project.startsWith("Via "))} onLanguage={changeLanguage} onSelect={openProjectEntry} onBack={() => setChoosingViaProject(false)} />
+  if (!currentProject || !activePhase) return <>
+    <ProjectGate intro={showLoginIntro} language={language} copy={t} projects={allowedProjects} choosingVia={choosingViaProject && allowedProjects.some((project) => project.startsWith("Via "))} phaseProject={pendingProject} onLanguage={changeLanguage} onSelect={openProjectEntry} onPhase={enterPhase} onBack={() => { if (pendingProject) setPendingProject(null); else setChoosingViaProject(false); }} />
     {showLoginIntro && <LoginHeroSequence onComplete={completeLoginIntro} />}
   </>;
 
   return <main className="app-shell">
-    <AppHeader language={language} project={currentProject} projects={allowedProjects} canEdit={canEdit} copy={t} onLanguage={changeLanguage} onProject={chooseProject} onLogout={async () => { await signOut(); setActiveProject(null); setChoosingViaProject(false); }} />
-    <div className={`workspace-split ${projectTransitioning ? "project-exit" : ""}`} key={currentProject}>
+    <AppHeader language={language} project={currentProject} phase={activePhase} projects={allowedProjects} canEdit={canEdit} copy={t} onLanguage={changeLanguage} onProject={chooseAnotherWorkspace} onLogout={async () => { await signOut(); setActiveProject(null); setActivePhase(null); setPendingProject(null); setChoosingViaProject(false); }} />
+    <div className={`workspace-split ${activePhase === "phase2" ? "reports-only" : ""} ${projectTransitioning ? "project-exit" : ""}`} key={`${currentProject}-${activePhase}`}>
     <section className="workspace reports-pane">
-      <div className="title-row"><div><p className="eyebrow">{currentProject}</p><h1>{t.reports} <span>{projectReports.length}</span></h1></div>{canEdit && <div className="title-actions"><button className="secondary" disabled={backfillingTranslations} onClick={async () => { if (!sessionToken || !currentProject) return; setBackfillingTranslations(true); try { await backfillTranslations({ token: sessionToken, project: currentProject }); } finally { setBackfillingTranslations(false); } }}>{backfillingTranslations ? (language === "ro" ? "Se pregătește…" : "Preparing…") : (language === "ro" ? "Tradu conținutul existent" : "Translate existing content")}</button><button className="primary add" onClick={openNew}><b>＋</b> {t.newReport}</button></div>}</div>
+      <div className="title-row"><div><p className="eyebrow">{currentProject} · {t.phase} {activePhase === "phase1" ? 1 : 2} · {PHASE_LABELS[language][activePhase]}</p><h1>{t.reports} <span>{projectReports.length}</span></h1></div>{canEdit && <div className="title-actions"><button className="secondary" disabled={backfillingTranslations} onClick={async () => { if (!sessionToken || !currentProject) return; setBackfillingTranslations(true); try { await backfillTranslations({ token: sessionToken, project: currentProject, phase: activePhase }); } finally { setBackfillingTranslations(false); } }}>{backfillingTranslations ? (language === "ro" ? "Se pregătește…" : "Preparing…") : (language === "ro" ? "Tradu conținutul existent" : "Translate existing content")}</button><button className="primary add" onClick={openNew}><b>＋</b> {t.newReport}</button></div>}</div>
       <ReportToolbar language={language} copy={t} query={query} platform={platformFilter} contentTypes={filters.contentType} valueTypes={filters.valueType} availableContentTypes={availableContentTypes} canEdit={canEdit} selectMode={selectMode} view={view} onQuery={setQuery} onPlatform={setPlatformFilter} onToggleFilter={toggleFilter} onSelectMode={() => { setSelectMode(!selectMode); setSelected([]); }} onView={setView} />
       {Object.values(filters).flat().length > 0 && <div className="chips">{(Object.entries(filters) as [keyof typeof filters, string[]][]).flatMap(([group, values]) => values.map((value) => <button key={group + value} className={`chip ${group}`} onClick={() => toggleFilter(group, value)}>{group === "contentType" ? CONTENT_TYPE_LABELS[language][value] ?? value : value === "brand" ? t.brandValue : value === "sales" ? t.salesValue : t.entertainmentValue} ×</button>))}<button className="clear" onClick={() => setFilters({ contentType: [], valueType: [] })}>{t.clearAll}</button></div>}
       {canEdit && selectMode && <div className="selection-bar"><span><b key={selected.length}>{selected.length}</b> {language === "ro" ? (selected.length === 1 ? "selectat" : "selectate") : t.selected}</span><button disabled={!selected.length} onClick={() => setConfirmDelete(true)}>{t.delete}</button></div>}
       <ReportCollection reports={visible} totalReports={projectReports.length} language={language} copy={t} canCreate={canEdit} view={view} transitionKey={`${view}-${query}-${platformFilter ?? "all"}-${JSON.stringify(filters)}`} selected={selected} selectMode={canEdit && selectMode} onSelect={(reportId) => setSelected((current) => current.includes(reportId) ? current.filter((id) => id !== reportId) : [...current, reportId])} onOpen={(report) => { const original = projectReports.find((item) => item.id === report.id); if (original) openReport(original); }} onCreate={openNew} />
     </section>
-    {sessionToken && <SwotWorkspace key={currentProject} token={sessionToken} language={language} project={currentProject} reports={projectReports} canEdit={canEdit} onOpenReport={(reportId) => { const report = projectReports.find((item) => item.id === reportId); if (report) openReport(report); }} />}
+    {sessionToken && activePhase === "phase1" && <SwotWorkspace key={currentProject} token={sessionToken} language={language} project={currentProject} reports={projectReports} canEdit={canEdit} onOpenReport={(reportId) => { const report = projectReports.find((item) => item.id === reportId); if (report) openReport(report); }} />}
     </div>
 
-    {active && draft && displayedActive && <div className={`modal-backdrop ${modalClosing ? "closing" : ""}`} onMouseDown={(e) => e.target === e.currentTarget && closeModal()}><section className="modal" role="dialog" aria-modal="true">
-      <div className="modal-head"><div><p className="eyebrow">{reports.some((r) => r.id === active.id) ? t.reportDetail : t.newReport}</p><h2>{editing ? (reports.some((r) => r.id === active.id) ? t.editReport : t.createAReport) : displayedActive.title}</h2></div><div>{canEdit && !editing && <button className="secondary" onClick={() => { setActiveValueTypes(valueTypesFor(active)); setEditing(true); }}>{t.edit}</button>}{editing && reports.some((r) => r.id === active.id) && <button className="secondary" onClick={() => { setDraft({ ...active }); setActiveValueTypes(valueTypesFor(active)); setEditing(false); }}>{t.cancel}</button>}<button className="close" aria-label={t.close} onClick={closeModal}>×</button></div></div>
+    {active && draft && displayedActive && <div className={`modal-backdrop ${modalClosing ? "closing" : ""}`} onMouseDown={(e) => e.target === e.currentTarget && closeModal()}><section className={`modal report-modal ${!editing && activePhase === "phase2" ? "phase-two-detail-modal" : ""}`} role="dialog" aria-modal="true">
+      <div className="modal-head"><div><p className="eyebrow">{reports.some((r) => r.id === active.id) ? t.reportDetail : t.newReport}</p><h2>{editing ? (reports.some((r) => r.id === active.id) ? t.editReport : t.createAReport) : activePhase === "phase2" ? t.reportDetail : displayedActive.title}</h2></div><div>{canEdit && !editing && <button className="secondary" onClick={() => { setActiveValueTypes(valueTypesFor(active)); setEditing(true); }}>{t.edit}</button>}{editing && reports.some((r) => r.id === active.id) && <button className="secondary" onClick={() => { setDraft({ ...active }); setActiveValueTypes(valueTypesFor(active)); setEditing(false); }}>{t.cancel}</button>}<button className="close" aria-label={t.close} onClick={closeModal}>×</button></div></div>
       {editing ? <form className="report-form" onSubmit={(e) => { e.preventDefault(); save(); }}>
         <div className="form-grid"><div className="wide"><label className="field-label">{t.reportTitle} *</label><input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder={t.titlePlaceholder} required /></div>
           <div className="wide"><label className="field-label">{t.project}</label><div className="form-project-context"><ProjectLogo project={draft.project} /><strong>{draft.project}</strong></div></div>
@@ -211,7 +233,7 @@ export default function Home() {
         <fieldset><legend>{t.contentType} *</legend>{draft.platform === "Website" ? <div className="website-type-editor">
           <input maxLength={80} required value={draft.contentType} onChange={(e) => setDraft({ ...draft, contentType: e.target.value })} placeholder={t.websiteTypePlaceholder} />
           <p>{t.websiteTypeHint}</p>
-          {websiteTypesForDraft.length > 0 && <div className="saved-website-types"><span>{t.savedForProject} · {draft.project}</span><div className="website-type-options">{websiteTypesForDraft.map((type) => <div key={type} className={`website-type-option ${draft.contentType.toLocaleLowerCase() === type.toLocaleLowerCase() ? "selected" : ""}`}><button type="button" onClick={() => setDraft({ ...draft, contentType: type })}>{type}</button>{canEdit && <button type="button" aria-label={`${t.delete}: ${type}`} onClick={() => sessionToken && removeWebsiteContentType({ token: sessionToken, project: draft.project, name: type })}>×</button>}</div>)}</div></div>}
+          {websiteTypesForDraft.length > 0 && <div className="saved-website-types"><span>{t.savedForProject} · {draft.project}</span><div className="website-type-options">{websiteTypesForDraft.map((type) => <div key={type} className={`website-type-option ${draft.contentType.toLocaleLowerCase() === type.toLocaleLowerCase() ? "selected" : ""}`}><button type="button" onClick={() => setDraft({ ...draft, contentType: type })}>{type}</button>{canEdit && <button type="button" aria-label={`${t.delete}: ${type}`} onClick={() => sessionToken && removeWebsiteContentType({ token: sessionToken, project: draft.project, phase: draft.phase, name: type })}>×</button>}</div>)}</div></div>}
         </div> : <div className="choice-row compact">{CONTENT_TYPES_BY_PLATFORM[draft.platform].map((type) => <button key={type} type="button" className={draft.contentType === type ? "selected" : ""} onClick={() => setDraft({ ...draft, contentType: type })}>{CONTENT_TYPE_LABELS[language][type]}</button>)}</div>}</fieldset>
         <fieldset className="value-comments"><div className="value-comments-head"><div><legend>{t.commentTopics} <span>{t.optional}</span></legend><p>{t.commentTopicsHint}</p></div></div>
           <div className="value-add-buttons">{VALUE_TYPES.filter((type) => !activeValueTypes.includes(type)).map((type) => { const label = type === "brand" ? t.brandValue : type === "sales" ? t.salesValue : t.entertainmentValue; return <button type="button" key={type} className={type} onClick={() => setActiveValueTypes((current) => [...current, type])}><span className="value-icon"><ValueIcon type={type} /></span><span>＋ {label}</span></button>; })}</div>
@@ -221,13 +243,9 @@ export default function Home() {
         <div><label className="field-label">{t.improvementLabel} *</label><textarea rows={5} value={draft.improvement} onChange={(e) => setDraft({ ...draft, improvement: e.target.value })} placeholder={t.improvementPlaceholder} required /></div>
         <ImageDropZone label={t.exampleScreenshots} images={draft.examples} token={sessionToken!} copy={t} onChange={(examples) => setDraft({ ...draft, examples })} />
         {saveError && <p className="form-error">{t.saveError}</p>}<div className="form-footer"><span>* {t.requiredFields}</span><button type="button" className="secondary" onClick={closeModal}>{t.cancel}</button><button type="submit" className={`primary save-button ${saveSuccess ? "success" : ""}`} disabled={saving || saveSuccess}>{saving ? t.saving : saveSuccess ? (language === "ro" ? "✓ Salvat" : "✓ Saved") : reports.some((r) => r.id === draft.id) ? t.saveChanges : t.createReport}</button></div>
-      </form> : <div className="report-detail"><div className="detail-meta"><div><label>{t.project}</label><strong className="detail-project"><ProjectLogo project={active.project} /><span>{active.project}</span></strong></div><div><label>{t.platform}</label><strong>{PLATFORM_LABELS[language][active.platform]}</strong></div><div><label>{t.contentType}</label><strong>{CONTENT_TYPE_LABELS[language][displayedActive.contentType] ?? displayedActive.contentType}</strong></div><div><label>{t.lastUpdated}</label><strong>{new Date(active.updatedAt).toLocaleDateString(language === "ro" ? "ro-RO" : "en-GB")}</strong></div></div>
-        {(displayedActive.brandValue || displayedActive.salesValue || displayedActive.entertainmentValue) && <div className="value-comment-detail"><p className="detail-section-label">{t.commentTopics}</p><div>{displayedActive.brandValue && <div className="brand"><div><span className="value-icon"><ValueIcon type="brand" /></span><label>{t.brandValue}</label>{active.brandGrade !== null && <strong>{active.brandGrade}<small>/10</small></strong>}</div><p>{displayedActive.brandValue}</p></div>}{displayedActive.salesValue && <div className="sales"><div><span className="value-icon"><ValueIcon type="sales" /></span><label>{t.salesValue}</label>{active.salesGrade !== null && <strong>{active.salesGrade}<small>/10</small></strong>}</div><p>{displayedActive.salesValue}</p></div>}{displayedActive.entertainmentValue && <div className="entertainment"><div><span className="value-icon"><ValueIcon type="entertainment" /></span><label>{t.entertainmentValue}</label>{active.entertainmentGrade !== null && <strong>{active.entertainmentGrade}<small>/10</small></strong>}</div><p>{displayedActive.entertainmentValue}</p></div>}</div></div>}
-        {active.evidence.length > 0 && <div className="detail-images">{active.evidence.map((img, i) => <img key={img.storageId} src={img.url} alt={`${t.screenshots} ${i + 1}`} />)}</div>}
-        <div className="detail-block improvement"><label>{t.improvementLabel}</label><p>{displayedActive.improvement}</p></div>{active.examples.length > 0 && <><p className="detail-section-label">{t.exampleScreenshots}</p><div className="detail-images">{active.examples.map((img, i) => <img key={img.storageId} src={img.url} alt={`${t.exampleScreenshots} ${i + 1}`} />)}</div></>}{active.url && <a className="source-link" href={active.url} target="_blank" rel="noreferrer">{t.openSource} ↗</a>}
-      </div>}
+      </form> : <ReportDetail report={{ ...active, ...displayedActive }} phase={activePhase} language={language} copy={t} />}
     </section></div>}
     {confirmClose && <Confirm title={t.discardTitle} body={t.discardBody} confirm={t.discardConfirm} cancel={t.cancel} onCancel={() => setConfirmClose(false)} onConfirm={() => { setConfirmClose(false); dismissModal(); }} />}
-    {canEdit && confirmDelete && <Confirm danger title={language === "ro" ? `Ștergi ${selected.length} ${selected.length === 1 ? "raport" : "rapoarte"}?` : `Delete ${selected.length} report${selected.length === 1 ? "" : "s"}?`} body={t.deleteBody} confirm={t.deleteReports} cancel={t.cancel} onCancel={() => setConfirmDelete(false)} onConfirm={async () => { if (sessionToken) await removeReports({ token: sessionToken, project: currentProject, ids: selected }); setSelected([]); setConfirmDelete(false); }} />}
+    {canEdit && confirmDelete && <Confirm danger title={language === "ro" ? `Ștergi ${selected.length} ${selected.length === 1 ? "raport" : "rapoarte"}?` : `Delete ${selected.length} report${selected.length === 1 ? "" : "s"}?`} body={t.deleteBody} confirm={t.deleteReports} cancel={t.cancel} onCancel={() => setConfirmDelete(false)} onConfirm={async () => { if (sessionToken) await removeReports({ token: sessionToken, project: currentProject, phase: activePhase, ids: selected }); setSelected([]); setConfirmDelete(false); }} />}
   </main>;
 }

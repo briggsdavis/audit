@@ -71,7 +71,7 @@ export const save = mutation({
     const reportIds = [...new Set(point.reportIds)];
     for (const reportId of reportIds) {
       const report = await ctx.db.query("reports").withIndex("by_external_id", (q) => q.eq("externalId", reportId)).unique();
-      if (!report || !sameProject(report.project, point.project)) throw new ConvexError("Linked report must belong to this project");
+      if (!report || !sameProject(report.project, point.project) || (report.phase ?? "phase1") !== "phase1") throw new ConvexError("Linked report must belong to Phase 1 of this project");
     }
     const existing = await ctx.db.query("swotPoints").withIndex("by_external_id", (q) => q.eq("externalId", point.id)).unique();
     const value = { project: point.project, title, analysis, quadrant: point.quadrant, reportIds, createdAt: point.createdAt, updatedAt: point.updatedAt, translation: { sourceLanguage: existing?.translation?.sourceLanguage ?? "en" as const, sourceUpdatedAt: point.updatedAt, status: "pending" as const, attempts: 0 } };

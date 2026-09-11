@@ -12,6 +12,7 @@ const MAX_RETRIES = 5;
 const BACKFILL_SPACING_MS = 4_000;
 const TRANSLATION_MODEL = "gpt-5.4-mini";
 const NON_RETRYABLE_QUOTA_CODES = new Set(["insufficient_quota", "credit_balance_exhausted", "billing_hard_limit_reached"]);
+const reportPhaseValidator = v.union(v.literal("phase1"), v.literal("phase2"));
 
 class TranslationProviderError extends Error {
   constructor(message: string, readonly retryable: boolean, readonly retryAfterMs?: number) {
@@ -184,14 +185,17 @@ export const translateSwot = internalAction({
 });
 
 export const backfillProject = mutation({
-  args: { token: v.string(), project: v.string() }, returns: v.number(),
-  handler: async (ctx, { token, project }) => {
+  args: { token: v.string(), project: v.string(), phase: reportPhaseValidator }, returns: v.number(),
+  handler: async (ctx, { token, project, phase }) => {
     requireProject(project);
     await requireSession(ctx, token, { project, write: true });
     const reports = (await Promise.all(storedProjectNames(project).map((name) => ctx.db.query("reports").withIndex("by_project", (q) => q.eq("project", name)).take(500)))).flat()
+      .filter((report) => (report.phase ?? "phase1") === phase)
       .filter((report) => report.translation?.status !== "complete" || report.translation.sourceUpdatedAt !== report.updatedAt || !report.translation.localized);
-    const points = (await Promise.all(storedProjectNames(project).map((name) => ctx.db.query("swotPoints").withIndex("by_project", (q) => q.eq("project", name)).take(500)))).flat()
-      .filter((point) => point.translation?.status !== "complete" || point.translation.sourceUpdatedAt !== point.updatedAt || !point.translation.localized);
+    const points = phase === "phase1"
+      ? (await Promise.all(storedProjectNames(project).map((name) => ctx.db.query("swotPoints").withIndex("by_project", (q) => q.eq("project", name)).take(500)))).flat()
+        .filter((point) => point.translation?.status !== "complete" || point.translation.sourceUpdatedAt !== point.updatedAt || !point.translation.localized)
+      : [];
     let offset = 0;
     for (const report of reports) {
       await ctx.db.patch(report._id, { translation: { sourceLanguage: report.translation?.sourceLanguage ?? "en", sourceUpdatedAt: report.updatedAt, status: "pending", attempts: 0 } });

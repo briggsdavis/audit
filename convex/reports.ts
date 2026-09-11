@@ -12,6 +12,7 @@ const reportFields = {
   id: v.string(),
   title: v.string(),
   project: v.string(),
+  phase: v.union(v.literal("phase1"), v.literal("phase2")),
   platform: v.string(),
   contentType: v.string(),
   brandValue: v.optional(v.string()),
@@ -28,6 +29,12 @@ const reportFields = {
   updatedAt: v.number(),
   order: v.number(),
 };
+
+const reportPhaseValidator = v.union(v.literal("phase1"), v.literal("phase2"));
+
+function isPhase(recordPhase: "phase1" | "phase2" | undefined, phase: "phase1" | "phase2") {
+  return (recordPhase ?? "phase1") === phase;
+}
 
 const MAX_PROJECT_RECORDS = 5_000;
 const MAX_TITLE_LENGTH = 500;
@@ -72,9 +79,9 @@ async function validateImages(ctx: MutationCtx, ids: readonly Id<"_storage">[]) 
 }
 
 export const list = query({
-  args: { token: v.string(), project: v.string() },
+  args: { token: v.string(), project: v.string(), phase: reportPhaseValidator },
   returns: v.array(reportResultValidator),
-  handler: async (ctx, { token, project }) => {
+  handler: async (ctx, { token, project, phase }) => {
     requireProject(project);
     const session = await getSessionOrNull(ctx, token);
     if (!session) return [];
@@ -82,11 +89,12 @@ export const list = query({
     const reports = (await Promise.all(storedProjectNames(project).map((storedProject) => ctx.db
       .query("reports")
       .withIndex("by_project", (index) => index.eq("project", storedProject))
-      .take(MAX_PROJECT_RECORDS)))).flat();
+      .take(MAX_PROJECT_RECORDS)))).flat().filter((report) => isPhase(report.phase, phase));
     return Promise.all(reports.map(async (report) => ({
       id: report.externalId,
       title: report.title,
       project: publicProjectName(report.project),
+      phase: report.phase ?? "phase1",
       platform: report.platform,
       contentType: report.contentType,
       brandValue: report.brandValue ?? "",
@@ -108,9 +116,9 @@ export const list = query({
 });
 
 export const listWebsiteContentTypes = query({
-  args: { token: v.string(), project: v.string() },
+  args: { token: v.string(), project: v.string(), phase: reportPhaseValidator },
   returns: v.array(v.object({ project: v.string(), name: v.string() })),
-  handler: async (ctx, { token, project }) => {
+  handler: async (ctx, { token, project, phase }) => {
     requireProject(project);
     const session = await getSessionOrNull(ctx, token);
     if (!session) return [];
@@ -118,7 +126,7 @@ export const listWebsiteContentTypes = query({
     const savedTypes = (await Promise.all(storedProjectNames(project).map((storedProject) => ctx.db
       .query("websiteContentTypes")
       .withIndex("by_project", (index) => index.eq("project", storedProject))
-      .take(MAX_PROJECT_RECORDS)))).flat();
+      .take(MAX_PROJECT_RECORDS)))).flat().filter((item) => isPhase(item.phase, phase));
     const byProject = new Map<string, { project: string; name: string }>();
     for (const item of savedTypes) byProject.set(`${publicProjectName(item.project)}:${item.normalizedName}`, { project: publicProjectName(item.project), name: item.name });
     return [...byProject.values()].sort((a, b) => a.project.localeCompare(b.project) || a.name.localeCompare(b.name));
@@ -126,17 +134,18 @@ export const listWebsiteContentTypes = query({
 });
 
 export const removeWebsiteContentType = mutation({
-  args: { token: v.string(), project: v.string(), name: v.string() },
+  args: { token: v.string(), project: v.string(), phase: reportPhaseValidator, name: v.string() },
   returns: v.null(),
-  handler: async (ctx, { token, project, name }) => {
+  handler: async (ctx, { token, project, phase, name }) => {
     requireProject(project);
     await requireSession(ctx, token, { project, write: true });
     const normalizedName = normalizeWebsiteContentType(name);
     for (const storedProject of storedProjectNames(project)) {
-      const item = await ctx.db.query("websiteContentTypes")
+      const items = await ctx.db.query("websiteContentTypes")
         .withIndex("by_project_normalized_name", (index) => index.eq("project", storedProject).eq("normalizedName", normalizedName))
-        .unique();
-      if (item) await ctx.db.delete(item._id);
+        .collect();
+      const item = items.find((candidate) => isPhase(candidate.phase, phase));
+      if (item && isPhase(item.phase, phase)) await ctx.db.delete(item._id);
     }
     return null;
   },
@@ -166,20 +175,21 @@ export const save = mutation({
       const normalizedName = normalizeWebsiteContentType(contentType);
       let savedType = null;
       for (const storedProject of storedProjectNames(report.project)) {
-        savedType = await ctx.db.query("websiteContentTypes")
+        const matches = await ctx.db.query("websiteContentTypes")
           .withIndex("by_project_normalized_name", (index) => index.eq("project", storedProject).eq("normalizedName", normalizedName))
-          .unique();
+          .collect();
+        savedType = matches.find((candidate) => isPhase(candidate.phase, report.phase)) ?? null;
         if (savedType) break;
       }
       if (savedType) contentType = savedType.name;
-      else await ctx.db.insert("websiteContentTypes", { project: report.project, name: contentType, normalizedName, createdAt: Date.now() });
+      else await ctx.db.insert("websiteContentTypes", { project: report.project, phase: report.phase, name: contentType, normalizedName, createdAt: Date.now() });
     } else if (!contentTypes[report.platform]?.has(contentType)) {
       throw new ConvexError("Invalid report classification");
     }
     const existing = await ctx.db.query("reports").withIndex("by_external_id", (q) => q.eq("externalId", report.id)).unique();
     const value = {
       externalId: report.id,
-      title: report.title.trim(), project: report.project, platform: report.platform, contentType,
+      title: report.title.trim(), project: report.project, phase: report.phase, platform: report.platform, contentType,
       brandValue: (report.brandValue ?? "").trim(), brandGrade: report.brandGrade ?? null,
       salesValue: (report.salesValue ?? "").trim(), salesGrade: report.salesGrade ?? null,
       entertainmentValue: (report.entertainmentValue ?? "").trim(), entertainmentGrade: report.entertainmentGrade ?? null,
@@ -189,6 +199,7 @@ export const save = mutation({
     };
     if (existing) {
       if (!sameProject(existing.project, report.project)) throw new ConvexError("A report cannot be moved between projects");
+      if ((existing.phase ?? "phase1") !== report.phase) throw new ConvexError("A report cannot be moved between phases");
       const retained = new Set([...report.evidence, ...report.examples]);
       for (const storageId of [...existing.evidence, ...existing.examples]) if (!retained.has(storageId)) await ctx.storage.delete(storageId);
       await ctx.db.patch(existing._id, value);
@@ -201,15 +212,16 @@ export const save = mutation({
 });
 
 export const remove = mutation({
-  args: { token: v.string(), project: v.string(), ids: v.array(v.string()) },
+  args: { token: v.string(), project: v.string(), phase: reportPhaseValidator, ids: v.array(v.string()) },
   returns: v.null(),
-  handler: async (ctx, { token, project, ids }) => {
+  handler: async (ctx, { token, project, phase, ids }) => {
     requireProject(project);
     await requireSession(ctx, token, { project, write: true });
     for (const id of ids) {
       const report = await ctx.db.query("reports").withIndex("by_external_id", (q) => q.eq("externalId", id)).unique();
       if (!report) continue;
       if (!sameProject(report.project, project)) throw new ConvexError("A report can only be removed from its own project");
+      if (!isPhase(report.phase, phase)) throw new ConvexError("A report can only be removed from its own phase");
       for (const storageId of [...report.evidence, ...report.examples]) await ctx.storage.delete(storageId);
       await ctx.db.delete(report._id);
     }

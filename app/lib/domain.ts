@@ -7,6 +7,13 @@ export const PROJECTS = ["City of Mara", "NordOne", "Vivalia", "Via Carmina", "V
 export type Project = (typeof PROJECTS)[number];
 export type ProjectEntry = Project | "Via Projects";
 
+export const REPORT_PHASES = ["phase1", "phase2"] as const;
+export type ReportPhase = (typeof REPORT_PHASES)[number];
+export const PHASE_LABELS: Record<Language, Record<ReportPhase, string>> = {
+  en: { phase1: "Content Focused", phase2: "Numerics and Data" },
+  ro: { phase1: "Axat pe conținut", phase2: "Cifre și date" },
+};
+
 export type AuditAccess = {
   accessLevel: "editor" | "general_view" | "com_view" | "nordone_view" | "via_view" | "vivalia_view";
   canEdit: boolean;
@@ -56,6 +63,7 @@ export type Report = {
   id: string;
   title: string;
   project: Project;
+  phase: ReportPhase;
   platform: Platform;
   contentType: string;
   brandValue: string;
@@ -113,6 +121,7 @@ export function localizeSwotPoint(point: SwotPoint, language: Language): SwotPoi
 export const EMPTY_REPORT: Omit<Report, "id" | "createdAt" | "updatedAt" | "order"> = {
   title: "",
   project: "City of Mara",
+  phase: "phase1",
   platform: "Instagram",
   contentType: "Carousel",
   brandValue: "",
