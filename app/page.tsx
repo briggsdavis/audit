@@ -39,14 +39,14 @@ import { SwotWorkspace } from "./SwotWorkspace";
 const COPY = {
   en: {
     contentAudit: "Content audit", enterWorkspace: "Welcome back", loginCopy: "A focused place to review, refine and strengthen every project.", passcode: "Passcode", continue: "Continue", secureNote: "Access stays active for 30 days on this device", authError: "That passcode isn’t correct, or the workspace is not configured yet.",
-    choosePhase: "Choose a phase", choosePhaseHint: "Open the reporting phase you want to work in for this project.", backToProjectSelection: "Back to project selection", phase: "Phase", available: "Open", comingSoon: "Coming soon", problemAnalysis: "Why it doesn’t work", recommendedSolution: "How to fix it",
+    choosePhase: "Choose a phase", choosePhaseHint: "Open the reporting phase you want to work in for this project.", backToProjectSelection: "Back to project selection", phase: "Phase", available: "Open", comingSoon: "Coming soon", problemAnalysis: "Why it doesn’t work", recommendedSolution: "How to fix it", executiveOverview: "Executive overview", executiveOverviewEmpty: "Add a concise overview for this report", executiveOverviewPlaceholder: "Summarize the key findings and strategic direction…",
     logOut: "Log out", viewOnly: "View only", editAccess: "Edit access", reports: "Reports", newReport: "New report", searchReports: "Search reports…", filter: "Filter", project: "Project", chooseProject: "Choose a project", chooseProjectHint: "Select a project, then choose the reporting phase you want to open.", chooseViaProject: "Choose a Via project", chooseViaProjectHint: "Select a Via project, then choose its reporting phase.", backToProjects: "Back to all projects", switchProject: "Switch project or phase", platform: "Platform", allPlatforms: "All", contentType: "Content type", valueComment: "Value comment", done: "Done", select: "Select", listView: "List view", gridView: "Grid view", clearAll: "Clear all", selected: "selected", delete: "Delete", updated: "Updated", open: "Open", noReportsFound: "No reports found", noReportsYet: "No reports yet", noReportsFiltered: "Try removing a filter or using a different search.", noReportsEmpty: "Create your first content audit report to get started.", noReportsEmptyViewOnly: "There are no reports in this project yet.", createAReport: "Create a report",
     reportDetail: "Report detail", editReport: "Edit report", edit: "Edit", cancel: "Cancel", close: "Close", reportTitle: "Report title", titlePlaceholder: "A clear, concise description", sourceUrl: "Source URL", optional: "Optional", commentTopics: "Value comments", commentTopicsHint: "Add only the value categories that apply to this report.", addComment: "Add a value comment", removeComment: "Remove comment", grade: "Grade", gradeOutOfTen: "out of 10", brandValue: "Brand value", brandValuePlaceholder: "How does this content affect or express the brand?", salesValue: "Sales value", salesValuePlaceholder: "How does this content support sales or conversion?", entertainmentValue: "Entertainment value", entertainmentValuePlaceholder: "How engaging or entertaining is this content?", screenshots: "Screenshots", improvementLabel: "How to do this better", improvementPlaceholder: "Explain the recommended improvement…", exampleScreenshots: "Example screenshots", requiredFields: "Required fields", saving: "Saving…", saveChanges: "Save changes", createReport: "Create report", lastUpdated: "Last updated", openSource: "Open source", discardTitle: "Discard unsaved changes?", discardBody: "Your edits won’t be saved.", discardConfirm: "Discard changes", deleteBody: "This will remove the selected reports from the audit.", deleteReports: "Delete reports", saveError: "This report could not be saved. Please try again.", websiteTypePlaceholder: "e.g. Home, About, Contact", savedForProject: "Saved for this project", websiteTypeHint: "Enter a page or section name. It will be saved for this project when the report is saved.",
     optionalMultiple: "Optional · multiple allowed", uploading: "Uploading…", dropImages: "Drop images here", browseImages: "or click to browse · JPEG, PNG, WebP", uploadError: "One or more images could not be uploaded. Please try again.", removeImage: "Remove image",
   },
   ro: {
     contentAudit: "Audit de conținut", enterWorkspace: "Bine ai revenit", loginCopy: "Un spațiu dedicat pentru a analiza și îmbunătăți fiecare proiect.", passcode: "Cod de acces", continue: "Continuă", secureNote: "Accesul rămâne activ timp de 30 de zile pe acest dispozitiv", authError: "Codul de acces este incorect sau spațiul de lucru nu este încă configurat.",
-    choosePhase: "Alege o fază", choosePhaseHint: "Deschide faza de raportare în care vrei să lucrezi pentru acest proiect.", backToProjectSelection: "Înapoi la selectarea proiectului", phase: "Faza", available: "Deschide", comingSoon: "În curând", problemAnalysis: "De ce nu funcționează", recommendedSolution: "Cum se poate remedia",
+    choosePhase: "Alege o fază", choosePhaseHint: "Deschide faza de raportare în care vrei să lucrezi pentru acest proiect.", backToProjectSelection: "Înapoi la selectarea proiectului", phase: "Faza", available: "Deschide", comingSoon: "În curând", problemAnalysis: "De ce nu funcționează", recommendedSolution: "Cum se poate remedia", executiveOverview: "Prezentare executivă", executiveOverviewEmpty: "Adaugă o prezentare concisă pentru acest raport", executiveOverviewPlaceholder: "Rezumați principalele constatări și direcția strategică…",
     logOut: "Deconectare", viewOnly: "Doar vizualizare", editAccess: "Acces editare", reports: "Rapoarte", newReport: "Raport nou", searchReports: "Caută în rapoarte…", filter: "Filtre", project: "Proiect", chooseProject: "Alege un proiect", chooseProjectHint: "Selectează un proiect, apoi alege faza de raportare pe care vrei să o deschizi.", chooseViaProject: "Alege un proiect Via", chooseViaProjectHint: "Selectează un proiect Via, apoi alege faza sa de raportare.", backToProjects: "Înapoi la toate proiectele", switchProject: "Schimbă proiectul sau faza", platform: "Platformă", allPlatforms: "Toate", contentType: "Tip de conținut", valueComment: "Comentariu de valoare", done: "Gata", select: "Selectează", listView: "Vizualizare listă", gridView: "Vizualizare grilă", clearAll: "Elimină toate filtrele", selected: "selectate", delete: "Șterge", updated: "Actualizat", open: "Deschide", noReportsFound: "Niciun raport găsit", noReportsYet: "Nu există încă rapoarte", noReportsFiltered: "Încearcă să elimini un filtru sau să folosești altă căutare.", noReportsEmpty: "Creează primul raport de audit de conținut pentru a începe.", noReportsEmptyViewOnly: "Nu există încă rapoarte în acest proiect.", createAReport: "Creează un raport",
     reportDetail: "Detalii raport", editReport: "Editează raportul", edit: "Editează", cancel: "Anulează", close: "Închide", reportTitle: "Titlul raportului", titlePlaceholder: "O descriere clară și concisă", sourceUrl: "Adresa URL sursă", optional: "Opțional", commentTopics: "Comentarii de valoare", commentTopicsHint: "Adaugă doar categoriile de valoare relevante pentru acest raport.", addComment: "Adaugă un comentariu de valoare", removeComment: "Elimină comentariul", grade: "Notă", gradeOutOfTen: "din 10", brandValue: "Valoare de brand", brandValuePlaceholder: "Cum influențează sau exprimă acest conținut brandul?", salesValue: "Valoare de vânzări", salesValuePlaceholder: "Cum susține acest conținut vânzările sau conversia?", entertainmentValue: "Valoare de divertisment", entertainmentValuePlaceholder: "Cât de captivant sau distractiv este acest conținut?", screenshots: "Capturi de ecran", improvementLabel: "Cum poate fi îmbunătățit", improvementPlaceholder: "Descrie îmbunătățirea recomandată…", exampleScreenshots: "Capturi de ecran de referință", requiredFields: "Câmpuri obligatorii", saving: "Se salvează…", saveChanges: "Salvează modificările", createReport: "Creează raportul", lastUpdated: "Ultima actualizare", openSource: "Deschide sursa", discardTitle: "Renunți la modificările nesalvate?", discardBody: "Modificările efectuate nu vor fi salvate.", discardConfirm: "Renunță la modificări", deleteBody: "Rapoartele selectate vor fi eliminate din audit.", deleteReports: "Șterge rapoartele", saveError: "Raportul nu a putut fi salvat. Încearcă din nou.", websiteTypePlaceholder: "de ex. Acasă, Despre noi, Contact", savedForProject: "Salvate pentru acest proiect", websiteTypeHint: "Introdu numele unei pagini sau secțiuni. Acesta va fi salvat pentru proiect atunci când salvezi raportul.",
     optionalMultiple: "Opțional · poți adăuga mai multe", uploading: "Se încarcă…", dropImages: "Trage imaginile aici", browseImages: "sau fă clic pentru a le selecta · JPEG, PNG, WebP", uploadError: "Una sau mai multe imagini nu au putut fi încărcate. Încearcă din nou.", removeImage: "Elimină imaginea",
@@ -75,6 +75,10 @@ export default function Home() {
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(false);
+  const [executiveOverviewOpen, setExecutiveOverviewOpen] = useState(false);
+  const [executiveOverviewDraft, setExecutiveOverviewDraft] = useState("");
+  const [executiveOverviewSaving, setExecutiveOverviewSaving] = useState(false);
+  const [executiveOverviewError, setExecutiveOverviewError] = useState(false);
   const [projectTransitioning, setProjectTransitioning] = useState(false);
   const projectTransitionTimer = useRef<number | null>(null);
   const saveReport = useMutation(api.reports.save);
@@ -128,7 +132,7 @@ export default function Home() {
     setModalClosing(false); setSaveSuccess(false);
     setActive(report); setDraft(report); setActiveValueTypes([]); setEditing(true);
   }
-  function openReport(report: Report) { setModalClosing(false); setSaveSuccess(false); setActive(report); setDraft({ ...report }); setActiveValueTypes(valueTypesFor(report)); setEditing(false); }
+  function openReport(report: Report) { setModalClosing(false); setSaveSuccess(false); setExecutiveOverviewOpen(false); setActive(report); setDraft({ ...report }); setActiveValueTypes(valueTypesFor(report)); setEditing(false); }
   async function save() {
     if (!draft || !sessionToken || !canEdit || !draft.title.trim() || !draft.contentType.trim() || !draft.improvement.trim()) return;
     setSaving(true); setSaveError(false);
@@ -139,6 +143,22 @@ export default function Home() {
       window.setTimeout(() => { setEditing(false); setSaveSuccess(false); }, 620);
     } catch { setSaveError(true); }
     finally { setSaving(false); }
+  }
+  function openExecutiveOverview() {
+    if (!active || activePhase !== "phase2") return;
+    setExecutiveOverviewDraft(active.executiveOverview);
+    setExecutiveOverviewError(false);
+    setExecutiveOverviewOpen(true);
+  }
+  async function saveExecutiveOverview() {
+    if (!active || !sessionToken || !canEdit || activePhase !== "phase2") return;
+    setExecutiveOverviewSaving(true); setExecutiveOverviewError(false);
+    try {
+      const next = { ...active, executiveOverview: executiveOverviewDraft.trim(), updatedAt: Date.now() };
+      await saveReport({ token: sessionToken, report: { ...next, evidence: next.evidence.map((image) => image.storageId), examples: next.examples.map((image) => image.storageId) } });
+      setActive(next); setDraft(next); setExecutiveOverviewOpen(false);
+    } catch { setExecutiveOverviewError(true); }
+    finally { setExecutiveOverviewSaving(false); }
   }
   function removeValueType(type: ValueType) {
     if (!draft) return;
@@ -151,7 +171,7 @@ export default function Home() {
     if (modalClosing) return;
     setModalClosing(true);
     window.setTimeout(() => {
-      setActive(null); setDraft(null); setEditing(false); setModalClosing(false);
+      setActive(null); setDraft(null); setEditing(false); setExecutiveOverviewOpen(false); setModalClosing(false);
     }, 220);
   }
   function closeModal() {
@@ -243,7 +263,13 @@ export default function Home() {
         <div><label className="field-label">{t.improvementLabel} *</label><textarea rows={5} value={draft.improvement} onChange={(e) => setDraft({ ...draft, improvement: e.target.value })} placeholder={t.improvementPlaceholder} required /></div>
         <ImageDropZone label={t.exampleScreenshots} images={draft.examples} token={sessionToken!} copy={t} onChange={(examples) => setDraft({ ...draft, examples })} />
         {saveError && <p className="form-error">{t.saveError}</p>}<div className="form-footer"><span>* {t.requiredFields}</span><button type="button" className="secondary" onClick={closeModal}>{t.cancel}</button><button type="submit" className={`primary save-button ${saveSuccess ? "success" : ""}`} disabled={saving || saveSuccess}>{saving ? t.saving : saveSuccess ? (language === "ro" ? "✓ Salvat" : "✓ Saved") : reports.some((r) => r.id === draft.id) ? t.saveChanges : t.createReport}</button></div>
-      </form> : <ReportDetail report={{ ...active, ...displayedActive }} phase={activePhase} language={language} copy={t} />}
+      </form> : <ReportDetail report={{ ...active, ...displayedActive }} phase={activePhase} language={language} copy={t} canEdit={canEdit} onExecutiveOverview={openExecutiveOverview} />}
+    </section></div>}
+    {executiveOverviewOpen && active && <div className="executive-overview-backdrop" onMouseDown={(event) => event.target === event.currentTarget && setExecutiveOverviewOpen(false)}><section className="executive-overview-modal" role="dialog" aria-modal="true" aria-labelledby="executive-overview-title">
+      <div className="modal-head"><div><p className="eyebrow">{active.title}</p><h2 id="executive-overview-title">{t.executiveOverview}</h2></div><button className="close" aria-label={t.close} onClick={() => setExecutiveOverviewOpen(false)}>×</button></div>
+      <div className="executive-overview-body"><label className="field-label" htmlFor="executive-overview-text">{t.executiveOverview}</label><textarea id="executive-overview-text" rows={10} maxLength={10000} autoFocus={canEdit} readOnly={!canEdit} value={executiveOverviewDraft} onChange={(event) => setExecutiveOverviewDraft(event.target.value)} placeholder={t.executiveOverviewPlaceholder} />
+        {executiveOverviewError && <p className="form-error">{t.saveError}</p>}<div className="form-footer"><button type="button" className="secondary" onClick={() => setExecutiveOverviewOpen(false)}>{canEdit ? t.cancel : t.close}</button>{canEdit && <button type="button" className="primary" disabled={executiveOverviewSaving} onClick={saveExecutiveOverview}>{executiveOverviewSaving ? t.saving : t.saveChanges}</button>}</div>
+      </div>
     </section></div>}
     {confirmClose && <Confirm title={t.discardTitle} body={t.discardBody} confirm={t.discardConfirm} cancel={t.cancel} onCancel={() => setConfirmClose(false)} onConfirm={() => { setConfirmClose(false); dismissModal(); }} />}
     {canEdit && confirmDelete && <Confirm danger title={language === "ro" ? `Ștergi ${selected.length} ${selected.length === 1 ? "raport" : "rapoarte"}?` : `Delete ${selected.length} report${selected.length === 1 ? "" : "s"}?`} body={t.deleteBody} confirm={t.deleteReports} cancel={t.cancel} onCancel={() => setConfirmDelete(false)} onConfirm={async () => { if (sessionToken) await removeReports({ token: sessionToken, project: currentProject, phase: activePhase, ids: selected }); setSelected([]); setConfirmDelete(false); }} />}

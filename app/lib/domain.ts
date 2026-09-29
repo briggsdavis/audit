@@ -10,8 +10,8 @@ export type ProjectEntry = Project | "Via Projects";
 export const REPORT_PHASES = ["phase1", "phase2"] as const;
 export type ReportPhase = (typeof REPORT_PHASES)[number];
 export const PHASE_LABELS: Record<Language, Record<ReportPhase, string>> = {
-  en: { phase1: "Content Focused", phase2: "Numerics and Data" },
-  ro: { phase1: "Axat pe conținut", phase2: "Cifre și date" },
+  en: { phase1: "Content Focused", phase2: "Strategy" },
+  ro: { phase1: "Axat pe conținut", phase2: "Strategie" },
 };
 
 export type AuditAccess = {
@@ -72,6 +72,7 @@ export type Report = {
   salesGrade: number | null;
   entertainmentValue: string;
   entertainmentGrade: number | null;
+  executiveOverview: string;
   improvement: string;
   url: string;
   evidence: ImageAsset[];
@@ -130,6 +131,7 @@ export const EMPTY_REPORT: Omit<Report, "id" | "createdAt" | "updatedAt" | "orde
   salesGrade: null,
   entertainmentValue: "",
   entertainmentGrade: null,
+  executiveOverview: "",
   improvement: "",
   url: "",
   evidence: [],

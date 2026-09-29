@@ -72,6 +72,7 @@ export default defineSchema({
     salesGrade: v.optional(v.union(v.number(), v.null())),
     entertainmentValue: v.optional(v.string()),
     entertainmentGrade: v.optional(v.union(v.number(), v.null())),
+    executiveOverview: v.optional(v.string()),
     grade: v.optional(v.union(v.number(), v.null())),
     issue: v.optional(v.string()),
     improvement: v.string(),
