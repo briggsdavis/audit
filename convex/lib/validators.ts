@@ -64,7 +64,6 @@ export const reportResultValidator = v.object({
   salesGrade: v.union(v.number(), v.null()),
   entertainmentValue: v.string(),
   entertainmentGrade: v.union(v.number(), v.null()),
-  executiveOverview: v.string(),
   improvement: v.string(),
   url: v.string(),
   evidence: v.array(imageAssetValidator),

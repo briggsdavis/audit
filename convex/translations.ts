@@ -6,8 +6,10 @@ import { requireProject, storedProjectNames } from "./lib/projects";
 
 const reportTextValidator = v.object({ title: v.string(), contentType: v.string(), brandValue: v.string(), salesValue: v.string(), entertainmentValue: v.string(), improvement: v.string() });
 const swotTextValidator = v.object({ title: v.string(), analysis: v.string() });
+const overviewTextValidator = v.object({ overview: v.string() });
 const localizedReportValidator = v.object({ en: reportTextValidator, ro: reportTextValidator });
 const localizedSwotValidator = v.object({ en: swotTextValidator, ro: swotTextValidator });
+const localizedOverviewValidator = v.object({ en: overviewTextValidator, ro: overviewTextValidator });
 const MAX_RETRIES = 5;
 const BACKFILL_SPACING_MS = 4_000;
 const TRANSLATION_MODEL = "gpt-5.4-mini";
@@ -42,6 +44,11 @@ export const getSwotForTranslation = internalQuery({
   handler: (ctx, { id }) => ctx.db.query("swotPoints").withIndex("by_external_id", (q) => q.eq("externalId", id)).unique(),
 });
 
+export const getOverviewForTranslation = internalQuery({
+  args: { id: v.id("projectOverviews") }, returns: v.any(),
+  handler: (ctx, { id }) => ctx.db.get(id),
+});
+
 export const applyReportTranslation = internalMutation({
   args: { id: v.string(), sourceUpdatedAt: v.number(), localized: localizedReportValidator }, returns: v.boolean(),
   handler: async (ctx, args) => {
@@ -58,6 +65,16 @@ export const applySwotTranslation = internalMutation({
     const point = await ctx.db.query("swotPoints").withIndex("by_external_id", (q) => q.eq("externalId", args.id)).unique();
     if (!point || point.updatedAt !== args.sourceUpdatedAt) return false;
     await ctx.db.patch(point._id, { translation: { sourceLanguage: point.translation?.sourceLanguage ?? "en", sourceUpdatedAt: args.sourceUpdatedAt, status: "complete", localized: args.localized, attempts: 0 } });
+    return true;
+  },
+});
+
+export const applyOverviewTranslation = internalMutation({
+  args: { id: v.id("projectOverviews"), sourceUpdatedAt: v.number(), localized: localizedOverviewValidator }, returns: v.boolean(),
+  handler: async (ctx, args) => {
+    const overview = await ctx.db.get(args.id);
+    if (!overview || overview.updatedAt !== args.sourceUpdatedAt) return false;
+    await ctx.db.patch(overview._id, { translation: { sourceLanguage: overview.translation?.sourceLanguage ?? "en", sourceUpdatedAt: args.sourceUpdatedAt, status: "complete", localized: args.localized, attempts: 0 } });
     return true;
   },
 });
@@ -80,6 +97,17 @@ export const markSwotTranslationFailed = internalMutation({
     if (!point || point.updatedAt !== args.sourceUpdatedAt) return MAX_RETRIES;
     const attempts = (point.translation?.sourceUpdatedAt === args.sourceUpdatedAt ? point.translation.attempts : 0) + 1;
     await ctx.db.patch(point._id, { translation: { sourceLanguage: point.translation?.sourceLanguage ?? "en", sourceUpdatedAt: args.sourceUpdatedAt, status: "failed", attempts, lastError: args.error } });
+    return attempts;
+  },
+});
+
+export const markOverviewTranslationFailed = internalMutation({
+  args: { id: v.id("projectOverviews"), sourceUpdatedAt: v.number(), error: v.string() }, returns: v.number(),
+  handler: async (ctx, args) => {
+    const overview = await ctx.db.get(args.id);
+    if (!overview || overview.updatedAt !== args.sourceUpdatedAt) return MAX_RETRIES;
+    const attempts = (overview.translation?.sourceUpdatedAt === args.sourceUpdatedAt ? overview.translation.attempts : 0) + 1;
+    await ctx.db.patch(overview._id, { translation: { sourceLanguage: overview.translation?.sourceLanguage ?? "en", sourceUpdatedAt: args.sourceUpdatedAt, status: "failed", attempts, lastError: args.error } });
     return attempts;
   },
 });
@@ -184,6 +212,29 @@ export const translateSwot = internalAction({
   },
 });
 
+export const translateOverview = internalAction({
+  args: { id: v.id("projectOverviews"), sourceUpdatedAt: v.number() }, returns: v.null(),
+  handler: async (ctx, args) => {
+    const overview = await ctx.runQuery(internal.translations.getOverviewForTranslation, { id: args.id });
+    if (!overview || overview.updatedAt !== args.sourceUpdatedAt) return null;
+    try {
+      const result = await translate({ overview: overview.overview });
+      const keys = ["overview"];
+      await ctx.runMutation(internal.translations.applyOverviewTranslation, { ...args, localized: {
+        en: localizedStrings(result.localized.en, keys) as { overview: string },
+        ro: localizedStrings(result.localized.ro, keys) as { overview: string },
+      } });
+    } catch (error) {
+      const message = safeError(error);
+      console.error(`Executive overview translation failed: ${message}`);
+      const attempts = await ctx.runMutation(internal.translations.markOverviewTranslationFailed, { ...args, error: message });
+      const delay = retryDelay(error, attempts);
+      if (attempts < MAX_RETRIES && process.env.OPENAI_API_KEY && delay !== null) await ctx.scheduler.runAfter(delay, internal.translations.translateOverview, args);
+    }
+    return null;
+  },
+});
+
 export const backfillProject = mutation({
   args: { token: v.string(), project: v.string(), phase: reportPhaseValidator }, returns: v.number(),
   handler: async (ctx, { token, project, phase }) => {
@@ -196,6 +247,9 @@ export const backfillProject = mutation({
       ? (await Promise.all(storedProjectNames(project).map((name) => ctx.db.query("swotPoints").withIndex("by_project", (q) => q.eq("project", name)).take(500)))).flat()
         .filter((point) => point.translation?.status !== "complete" || point.translation.sourceUpdatedAt !== point.updatedAt || !point.translation.localized)
       : [];
+    const overview = phase === "phase2"
+      ? (await Promise.all(storedProjectNames(project).map((name) => ctx.db.query("projectOverviews").withIndex("by_project_phase", (q) => q.eq("project", name).eq("phase", phase)).unique()))).find(Boolean)
+      : null;
     let offset = 0;
     for (const report of reports) {
       await ctx.db.patch(report._id, { translation: { sourceLanguage: report.translation?.sourceLanguage ?? "en", sourceUpdatedAt: report.updatedAt, status: "pending", attempts: 0 } });
@@ -205,6 +259,11 @@ export const backfillProject = mutation({
     for (const point of points) {
       await ctx.db.patch(point._id, { translation: { sourceLanguage: point.translation?.sourceLanguage ?? "en", sourceUpdatedAt: point.updatedAt, status: "pending", attempts: 0 } });
       await ctx.scheduler.runAfter(offset * BACKFILL_SPACING_MS, internal.translations.translateSwot, { id: point.externalId, sourceUpdatedAt: point.updatedAt });
+      offset += 1;
+    }
+    if (overview && (overview.translation?.status !== "complete" || overview.translation.sourceUpdatedAt !== overview.updatedAt || !overview.translation.localized)) {
+      await ctx.db.patch(overview._id, { translation: { sourceLanguage: overview.translation?.sourceLanguage ?? "en", sourceUpdatedAt: overview.updatedAt, status: "pending", attempts: 0 } });
+      await ctx.scheduler.runAfter(offset * BACKFILL_SPACING_MS, internal.translations.translateOverview, { id: overview._id, sourceUpdatedAt: overview.updatedAt });
       offset += 1;
     }
     return offset;
@@ -218,6 +277,8 @@ export const backfillAllExisting = internalMutation({
       .filter((report) => report.translation?.status !== "complete" || report.translation.sourceUpdatedAt !== report.updatedAt || !report.translation.localized);
     const points = (await ctx.db.query("swotPoints").take(1_000))
       .filter((point) => point.translation?.status !== "complete" || point.translation.sourceUpdatedAt !== point.updatedAt || !point.translation.localized);
+    const overviews = (await ctx.db.query("projectOverviews").take(100))
+      .filter((overview) => overview.translation?.status !== "complete" || overview.translation.sourceUpdatedAt !== overview.updatedAt || !overview.translation.localized);
     let offset = 0;
     for (const report of reports) {
       await ctx.db.patch(report._id, { translation: { sourceLanguage: report.translation?.sourceLanguage ?? "en", sourceUpdatedAt: report.updatedAt, status: "pending", attempts: 0 } });
@@ -227,6 +288,11 @@ export const backfillAllExisting = internalMutation({
     for (const point of points) {
       await ctx.db.patch(point._id, { translation: { sourceLanguage: point.translation?.sourceLanguage ?? "en", sourceUpdatedAt: point.updatedAt, status: "pending", attempts: 0 } });
       await ctx.scheduler.runAfter(offset * BACKFILL_SPACING_MS, internal.translations.translateSwot, { id: point.externalId, sourceUpdatedAt: point.updatedAt });
+      offset += 1;
+    }
+    for (const overview of overviews) {
+      await ctx.db.patch(overview._id, { translation: { sourceLanguage: overview.translation?.sourceLanguage ?? "en", sourceUpdatedAt: overview.updatedAt, status: "pending", attempts: 0 } });
+      await ctx.scheduler.runAfter(offset * BACKFILL_SPACING_MS, internal.translations.translateOverview, { id: overview._id, sourceUpdatedAt: overview.updatedAt });
       offset += 1;
     }
     return offset;

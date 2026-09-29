@@ -21,7 +21,6 @@ const reportFields = {
   salesGrade: v.optional(v.union(v.number(), v.null())),
   entertainmentValue: v.optional(v.string()),
   entertainmentGrade: v.optional(v.union(v.number(), v.null())),
-  executiveOverview: v.optional(v.string()),
   improvement: v.string(),
   url: v.string(),
   evidence: v.array(v.id("_storage")),
@@ -104,7 +103,6 @@ export const list = query({
       salesGrade: report.salesGrade ?? null,
       entertainmentValue: report.entertainmentValue ?? "",
       entertainmentGrade: report.entertainmentGrade ?? null,
-      executiveOverview: report.executiveOverview ?? "",
       improvement: report.improvement,
       url: report.url,
       evidence: await Promise.all(report.evidence.map(async (storageId) => ({ storageId, url: await ctx.storage.getUrl(storageId) ?? "" }))),
@@ -165,7 +163,6 @@ export const save = mutation({
     requireText(report.brandValue ?? "", "Brand value", MAX_TEXT_LENGTH);
     requireText(report.salesValue ?? "", "Sales value", MAX_TEXT_LENGTH);
     requireText(report.entertainmentValue ?? "", "Entertainment value", MAX_TEXT_LENGTH);
-    requireText(report.executiveOverview ?? "", "Executive overview", MAX_TEXT_LENGTH);
     validateSourceUrl(report.url.trim());
     await validateImages(ctx, report.evidence);
     await validateImages(ctx, report.examples);
@@ -196,7 +193,6 @@ export const save = mutation({
       brandValue: (report.brandValue ?? "").trim(), brandGrade: report.brandGrade ?? null,
       salesValue: (report.salesValue ?? "").trim(), salesGrade: report.salesGrade ?? null,
       entertainmentValue: (report.entertainmentValue ?? "").trim(), entertainmentGrade: report.entertainmentGrade ?? null,
-      executiveOverview: (report.executiveOverview ?? "").trim(),
       improvement: report.improvement.trim(), url: report.url.trim(),
       evidence: report.evidence, examples: report.examples, createdAt: report.createdAt, updatedAt: report.updatedAt, order: report.order,
       translation: { sourceLanguage: existing?.translation?.sourceLanguage ?? "en" as const, sourceUpdatedAt: report.updatedAt, status: "pending" as const, attempts: 0 },

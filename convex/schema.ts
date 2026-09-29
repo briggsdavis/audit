@@ -50,6 +50,16 @@ const swotTranslationValidator = v.object({
   lastError: v.optional(v.string()),
 });
 
+const overviewTextValidator = v.object({ overview: v.string() });
+const overviewTranslationValidator = v.object({
+  sourceLanguage: v.union(v.literal("en"), v.literal("ro")),
+  sourceUpdatedAt: v.number(),
+  status: v.union(v.literal("pending"), v.literal("complete"), v.literal("failed")),
+  localized: v.optional(v.object({ en: overviewTextValidator, ro: overviewTextValidator })),
+  attempts: v.number(),
+  lastError: v.optional(v.string()),
+});
+
 export default defineSchema({
   sessions: defineTable({
     token: v.string(),
@@ -91,6 +101,14 @@ export default defineSchema({
     normalizedName: v.string(),
     createdAt: v.number(),
   }).index("by_project", ["project"]).index("by_project_normalized_name", ["project", "normalizedName"]),
+  projectOverviews: defineTable({
+    project: v.string(),
+    phase: v.union(v.literal("phase1"), v.literal("phase2")),
+    overview: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    translation: v.optional(overviewTranslationValidator),
+  }).index("by_project_phase", ["project", "phase"]),
   swotPoints: defineTable({
     externalId: v.string(),
     project: v.optional(v.string()),

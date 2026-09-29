@@ -72,7 +72,6 @@ export type Report = {
   salesGrade: number | null;
   entertainmentValue: string;
   entertainmentGrade: number | null;
-  executiveOverview: string;
   improvement: string;
   url: string;
   evidence: ImageAsset[];
@@ -81,6 +80,22 @@ export type Report = {
   updatedAt: number;
   order: number;
   translation?: ReportTranslation;
+};
+
+export type ExecutiveOverview = {
+  project: Project;
+  phase: ReportPhase;
+  overview: string;
+  createdAt: number;
+  updatedAt: number;
+  translation?: {
+    sourceLanguage: Language;
+    sourceUpdatedAt: number;
+    status: TranslationStatus;
+    localized?: Record<Language, { overview: string }>;
+    attempts: number;
+    lastError?: string;
+  };
 };
 
 export type SwotPoint = {
@@ -111,6 +126,12 @@ export function localizeReport(report: Report, language: Language): Report {
   return { ...report, ...translation.translated };
 }
 
+export function localizeExecutiveOverview(overview: ExecutiveOverview, language: Language) {
+  const translation = overview.translation;
+  if (!translation || translation.status !== "complete" || translation.sourceUpdatedAt !== overview.updatedAt || !translation.localized) return overview.overview;
+  return translation.localized[language].overview;
+}
+
 export function localizeSwotPoint(point: SwotPoint, language: Language): SwotPoint {
   const translation = point.translation;
   if (!translation || translation.status !== "complete" || translation.sourceUpdatedAt !== point.updatedAt) return point;
@@ -131,7 +152,6 @@ export const EMPTY_REPORT: Omit<Report, "id" | "createdAt" | "updatedAt" | "orde
   salesGrade: null,
   entertainmentValue: "",
   entertainmentGrade: null,
-  executiveOverview: "",
   improvement: "",
   url: "",
   evidence: [],

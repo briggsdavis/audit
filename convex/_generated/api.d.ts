@@ -14,6 +14,7 @@ import type * as lib_projects from "../lib/projects.js";
 import type * as lib_rateLimits from "../lib/rateLimits.js";
 import type * as lib_sessions from "../lib/sessions.js";
 import type * as lib_validators from "../lib/validators.js";
+import type * as overviews from "../overviews.js";
 import type * as reports from "../reports.js";
 import type * as swot from "../swot.js";
 import type * as translations from "../translations.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   "lib/rateLimits": typeof lib_rateLimits;
   "lib/sessions": typeof lib_sessions;
   "lib/validators": typeof lib_validators;
+  overviews: typeof overviews;
   reports: typeof reports;
   swot: typeof swot;
   translations: typeof translations;

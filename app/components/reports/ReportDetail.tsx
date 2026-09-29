@@ -20,10 +20,6 @@ type DetailCopy = {
   openSource: string;
   problemAnalysis: string;
   recommendedSolution: string;
-  executiveOverview: string;
-  executiveOverviewEmpty: string;
-  edit: string;
-  open: string;
 };
 
 function Meta({ report, language, copy }: { report: Report; language: Language; copy: DetailCopy }) {
@@ -47,11 +43,8 @@ function Solution({ report, copy }: { report: Report; copy: DetailCopy }) {
   return <><div className="detail-block improvement"><label>{copy.improvementLabel}</label><p>{report.improvement}</p></div>{report.examples.length > 0 && <><p className="detail-section-label">{copy.exampleScreenshots}</p><div className="detail-images">{report.examples.map((image, index) => <img key={image.storageId} src={image.url} alt={`${copy.exampleScreenshots} ${index + 1}`} />)}</div></>}{report.url && <a className="source-link" href={report.url} target="_blank" rel="noreferrer">{copy.openSource} ↗</a>}</>;
 }
 
-export function ReportDetail({ report, phase, language, copy, canEdit, onExecutiveOverview }: { report: Report; phase: ReportPhase; language: Language; copy: DetailCopy; canEdit: boolean; onExecutiveOverview: () => void }) {
+export function ReportDetail({ report, phase, language, copy }: { report: Report; phase: ReportPhase; language: Language; copy: DetailCopy }) {
   if (phase === "phase2") return <div className="report-detail report-detail-split">
-    <button type="button" className="executive-overview-field" onClick={onExecutiveOverview}>
-      <span><small>{copy.executiveOverview}</small><strong>{report.executiveOverview || copy.executiveOverviewEmpty}</strong></span><b>{canEdit ? copy.edit : copy.open} ↗</b>
-    </button>
     <section className="report-detail-column problem-column"><div className="detail-column-heading"><span>01</span><div><small>{language === "ro" ? "Problema" : "The problem"}</small><h3>{copy.problemAnalysis}</h3></div></div><div className="detail-report-title"><label>{copy.reportTitle}</label><h4>{report.title}</h4></div><Meta report={report} language={language} copy={copy} /><Analysis report={report} copy={copy} /><Evidence report={report} copy={copy} /></section>
     <section className="report-detail-column solution-column"><div className="detail-column-heading"><span>02</span><div><small>{language === "ro" ? "Soluția" : "The solution"}</small><h3>{copy.recommendedSolution}</h3></div></div><Solution report={report} copy={copy} /></section>
   </div>;
