@@ -152,7 +152,9 @@ export default function Home() {
     setSaving(true); setSaveError(false);
     try {
       const next = { ...draft, updatedAt: Date.now() };
-      await saveReport({ token: sessionToken, sourceLanguage: language, report: { ...next, evidence: next.evidence.map((image) => image.storageId), examples: next.examples.map((image) => image.storageId) } });
+      const report = { ...next, evidence: next.evidence.map((image) => image.storageId), examples: next.examples.map((image) => image.storageId) };
+      delete report.translation;
+      await saveReport({ token: sessionToken, sourceLanguage: language, report });
       setActive(next); setDraft(next); setSaving(false); setSaveSuccess(true);
       window.setTimeout(() => { setEditing(false); setSaveSuccess(false); }, 620);
     } catch { setSaveError(true); }
