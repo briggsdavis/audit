@@ -31,6 +31,7 @@ const reportFields = {
 };
 
 const reportPhaseValidator = v.union(v.literal("phase1"), v.literal("phase2"));
+const languageValidator = v.union(v.literal("en"), v.literal("ro"));
 
 function isPhase(recordPhase: "phase1" | "phase2" | undefined, phase: "phase1" | "phase2") {
   return (recordPhase ?? "phase1") === phase;
@@ -152,9 +153,9 @@ export const removeWebsiteContentType = mutation({
 });
 
 export const save = mutation({
-  args: { token: v.string(), report: v.object(reportFields) },
+  args: { token: v.string(), sourceLanguage: languageValidator, report: v.object(reportFields) },
   returns: v.null(),
-  handler: async (ctx, { token, report }) => {
+  handler: async (ctx, { token, sourceLanguage, report }) => {
     requireProject(report.project);
     await requireSession(ctx, token, { project: report.project, write: true });
     await enforceWriteRateLimit(ctx, token);
@@ -195,7 +196,7 @@ export const save = mutation({
       entertainmentValue: (report.entertainmentValue ?? "").trim(), entertainmentGrade: report.entertainmentGrade ?? null,
       improvement: report.improvement.trim(), url: report.url.trim(),
       evidence: report.evidence, examples: report.examples, createdAt: report.createdAt, updatedAt: report.updatedAt, order: report.order,
-      translation: { sourceLanguage: existing?.translation?.sourceLanguage ?? "en" as const, sourceUpdatedAt: report.updatedAt, status: "pending" as const, attempts: 0 },
+      translation: { sourceLanguage, sourceUpdatedAt: report.updatedAt, status: "pending" as const, attempts: 0 },
     };
     if (existing) {
       if (!sameProject(existing.project, report.project)) throw new ConvexError("A report cannot be moved between projects");

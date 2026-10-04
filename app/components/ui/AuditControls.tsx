@@ -14,7 +14,7 @@ export function ValueCommentEditor({ type, label, placeholder, value, grade, gra
   return <div className={`value-comment-editor ${type}`}>
     <div className="value-comment-head"><span className="value-icon"><ValueIcon type={type} /></span><strong>{label}</strong><button type="button" aria-label={`${removeLabel}: ${label}`} onClick={onRemove}>×</button></div>
     <AutoGrowTextarea value={value} onChange={onValue} placeholder={placeholder} />
-    <label className="value-grade"><span>{gradeLabel}</span><span><input required type="number" min="1" max="10" step="1" value={grade ?? ""} onChange={(event) => onGrade(event.target.value === "" ? null : Number(event.target.value))} /><b>{gradeSuffix}</b></span></label>
+    <label className="value-grade"><span>{gradeLabel}</span><span><input type="number" min="1" max="10" step="1" value={grade ?? ""} onChange={(event) => onGrade(event.target.value === "" ? null : Number(event.target.value))} /><b>{gradeSuffix}</b></span></label>
   </div>;
 }
 

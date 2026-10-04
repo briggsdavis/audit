@@ -140,12 +140,19 @@ export default function Home() {
     setActive(report); setDraft(report); setActiveValueTypes([]); setEditing(true);
   }
   function openReport(report: Report) { setModalClosing(false); setSaveSuccess(false); setActive(report); setDraft({ ...report }); setActiveValueTypes(valueTypesFor(report)); setEditing(false); }
+  function editReport() {
+    if (!active) return;
+    const localized = localizeReport(active, language);
+    setDraft({ ...localized });
+    setActiveValueTypes(valueTypesFor(localized));
+    setEditing(true);
+  }
   async function save() {
     if (!draft || !sessionToken || !canEdit || !draft.title.trim() || !draft.contentType.trim() || !draft.improvement.trim()) return;
     setSaving(true); setSaveError(false);
     try {
       const next = { ...draft, updatedAt: Date.now() };
-      await saveReport({ token: sessionToken, report: { ...next, evidence: next.evidence.map((image) => image.storageId), examples: next.examples.map((image) => image.storageId) } });
+      await saveReport({ token: sessionToken, sourceLanguage: language, report: { ...next, evidence: next.evidence.map((image) => image.storageId), examples: next.examples.map((image) => image.storageId) } });
       setActive(next); setDraft(next); setSaving(false); setSaveSuccess(true);
       window.setTimeout(() => { setEditing(false); setSaveSuccess(false); }, 620);
     } catch { setSaveError(true); }
@@ -252,7 +259,7 @@ export default function Home() {
     </div>
 
     {active && draft && displayedActive && <div className={`modal-backdrop ${modalClosing ? "closing" : ""}`} onMouseDown={(e) => e.target === e.currentTarget && closeModal()}><section className={`modal report-modal ${!editing && activePhase === "phase2" ? "phase-two-detail-modal" : ""}`} role="dialog" aria-modal="true">
-      <div className="modal-head"><div><p className="eyebrow">{reports.some((r) => r.id === active.id) ? t.reportDetail : t.newReport}</p><h2>{editing ? (reports.some((r) => r.id === active.id) ? t.editReport : t.createAReport) : activePhase === "phase2" ? t.reportDetail : displayedActive.title}</h2></div><div>{canEdit && !editing && <button className="secondary" onClick={() => { setActiveValueTypes(valueTypesFor(active)); setEditing(true); }}>{t.edit}</button>}{editing && reports.some((r) => r.id === active.id) && <button className="secondary" onClick={() => { setDraft({ ...active }); setActiveValueTypes(valueTypesFor(active)); setEditing(false); }}>{t.cancel}</button>}<button className="close" aria-label={t.close} onClick={closeModal}>×</button></div></div>
+      <div className="modal-head"><div><p className="eyebrow">{reports.some((r) => r.id === active.id) ? t.reportDetail : t.newReport}</p><h2>{editing ? (reports.some((r) => r.id === active.id) ? t.editReport : t.createAReport) : activePhase === "phase2" ? t.reportDetail : displayedActive.title}</h2></div><div>{canEdit && !editing && <button className="secondary" onClick={editReport}>{t.edit}</button>}{editing && reports.some((r) => r.id === active.id) && <button className="secondary" onClick={() => { setDraft({ ...active }); setActiveValueTypes(valueTypesFor(active)); setEditing(false); }}>{t.cancel}</button>}<button className="close" aria-label={t.close} onClick={closeModal}>×</button></div></div>
       {editing ? <form className="report-form" onSubmit={(e) => { e.preventDefault(); save(); }}>
         <div className="form-grid"><div className="wide"><label className="field-label">{t.reportTitle} *</label><input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder={t.titlePlaceholder} required /></div>
           <div className="wide"><label className="field-label">{t.project}</label><div className="form-project-context"><ProjectLogo project={draft.project} /><strong>{draft.project}</strong></div></div>
