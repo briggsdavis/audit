@@ -29,9 +29,9 @@ function Meta({ report, language, copy }: { report: Report; language: Language; 
 function Analysis({ report, copy }: { report: Report; copy: DetailCopy }) {
   if (!report.brandValue && !report.salesValue && !report.entertainmentValue) return null;
   return <div className="value-comment-detail"><p className="detail-section-label">{copy.commentTopics}</p><div>
-    {report.brandValue && <div className="brand"><div><span className="value-icon"><ValueIcon type="brand" /></span><label>{copy.brandValue}</label>{report.brandGrade !== null && <strong>{report.brandGrade}<small>/10</small></strong>}</div><p>{report.brandValue}</p></div>}
-    {report.salesValue && <div className="sales"><div><span className="value-icon"><ValueIcon type="sales" /></span><label>{copy.salesValue}</label>{report.salesGrade !== null && <strong>{report.salesGrade}<small>/10</small></strong>}</div><p>{report.salesValue}</p></div>}
-    {report.entertainmentValue && <div className="entertainment"><div><span className="value-icon"><ValueIcon type="entertainment" /></span><label>{copy.entertainmentValue}</label>{report.entertainmentGrade !== null && <strong>{report.entertainmentGrade}<small>/10</small></strong>}</div><p>{report.entertainmentValue}</p></div>}
+    {report.brandValue && <div className="brand"><div><span className="value-icon"><ValueIcon type="brand" /></span><label>{copy.brandValue}</label>{report.phase !== "phase3" && report.brandGrade !== null && <strong>{report.brandGrade}<small>/10</small></strong>}</div><p>{report.brandValue}</p></div>}
+    {report.salesValue && <div className="sales"><div><span className="value-icon"><ValueIcon type="sales" /></span><label>{copy.salesValue}</label>{report.phase !== "phase3" && report.salesGrade !== null && <strong>{report.salesGrade}<small>/10</small></strong>}</div><p>{report.salesValue}</p></div>}
+    {report.entertainmentValue && <div className="entertainment"><div><span className="value-icon"><ValueIcon type="entertainment" /></span><label>{copy.entertainmentValue}</label>{report.phase !== "phase3" && report.entertainmentGrade !== null && <strong>{report.entertainmentGrade}<small>/10</small></strong>}</div><p>{report.entertainmentValue}</p></div>}
   </div></div>;
 }
 

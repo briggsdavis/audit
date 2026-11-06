@@ -172,9 +172,9 @@ export const CONTENT_TYPE_LABELS: Record<Language, Record<string, string>> = {
 
 export function valueTypesFor(report: Report) {
   return VALUE_TYPES.filter((type) => {
-    if (type === "brand") return Boolean(report.brandValue) || report.brandGrade !== null;
-    if (type === "sales") return Boolean(report.salesValue) || report.salesGrade !== null;
-    return Boolean(report.entertainmentValue) || report.entertainmentGrade !== null;
+    if (type === "brand") return Boolean(report.brandValue) || (report.phase !== "phase3" && report.brandGrade !== null);
+    if (type === "sales") return Boolean(report.salesValue) || (report.phase !== "phase3" && report.salesGrade !== null);
+    return Boolean(report.entertainmentValue) || (report.phase !== "phase3" && report.entertainmentGrade !== null);
   });
 }
 

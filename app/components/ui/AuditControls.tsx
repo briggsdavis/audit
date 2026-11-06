@@ -10,11 +10,11 @@ export function ValueIcon({ type }: { type: ValueType }) {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5.5v9.2a3 3 0 1 1-2-2.82V7l10-2v7.7a3 3 0 1 1-2-2.82V3.5Z" /></svg>;
 }
 
-export function ValueCommentEditor({ type, label, placeholder, value, grade, gradeLabel, gradeSuffix, removeLabel, onValue, onGrade, onRemove }: { type: ValueType; label: string; placeholder: string; value: string; grade: number | null; gradeLabel: string; gradeSuffix: string; removeLabel: string; onValue: (value: string) => void; onGrade: (grade: number | null) => void; onRemove: () => void }) {
+export function ValueCommentEditor({ showGrade, type, label, placeholder, value, grade, gradeLabel, gradeSuffix, removeLabel, onValue, onGrade, onRemove }: { showGrade: boolean; type: ValueType; label: string; placeholder: string; value: string; grade: number | null; gradeLabel: string; gradeSuffix: string; removeLabel: string; onValue: (value: string) => void; onGrade: (grade: number | null) => void; onRemove: () => void }) {
   return <div className={`value-comment-editor ${type}`}>
     <div className="value-comment-head"><span className="value-icon"><ValueIcon type={type} /></span><strong>{label}</strong><button type="button" aria-label={`${removeLabel}: ${label}`} onClick={onRemove}>×</button></div>
     <AutoGrowTextarea value={value} onChange={onValue} placeholder={placeholder} />
-    <label className="value-grade"><span>{gradeLabel}</span><span><input type="number" min="1" max="10" step="1" value={grade ?? ""} onChange={(event) => onGrade(event.target.value === "" ? null : Number(event.target.value))} /><b>{gradeSuffix}</b></span></label>
+    {showGrade && <label className="value-grade"><span>{gradeLabel}</span><span><input type="number" min="1" max="10" step="1" value={grade ?? ""} onChange={(event) => onGrade(event.target.value === "" ? null : Number(event.target.value))} /><b>{gradeSuffix}</b></span></label>}
   </div>;
 }
 

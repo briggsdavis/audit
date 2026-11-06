@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { internal } from "./_generated/api";
-import { mutation, query, type MutationCtx } from "./_generated/server";
+import { internalAction, internalMutation, mutation, query, type MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { publicProjectName, requireProject, sameProject, storedProjectNames } from "./lib/projects";
 import { getSessionOrNull, requireSession } from "./lib/sessions";
@@ -101,11 +101,11 @@ export const list = query({
       platform: report.platform,
       contentType: report.contentType,
       brandValue: report.brandValue ?? "",
-      brandGrade: report.brandGrade ?? null,
+      brandGrade: report.phase === "phase3" ? null : report.brandGrade ?? null,
       salesValue: report.salesValue ?? "",
-      salesGrade: report.salesGrade ?? null,
+      salesGrade: report.phase === "phase3" ? null : report.salesGrade ?? null,
       entertainmentValue: report.entertainmentValue ?? "",
-      entertainmentGrade: report.entertainmentGrade ?? null,
+      entertainmentGrade: report.phase === "phase3" ? null : report.entertainmentGrade ?? null,
       improvement: report.improvement,
       url: report.url,
       evidence: await Promise.all(report.evidence.map(async (storageId) => ({ storageId, url: await ctx.storage.getUrl(storageId) ?? "" }))),
@@ -194,9 +194,9 @@ export const save = mutation({
     const value = {
       externalId: report.id,
       title: report.title.trim(), project: report.project, phase: report.phase, platform: report.platform, contentType,
-      brandValue: (report.brandValue ?? "").trim(), brandGrade: report.brandGrade ?? null,
-      salesValue: (report.salesValue ?? "").trim(), salesGrade: report.salesGrade ?? null,
-      entertainmentValue: (report.entertainmentValue ?? "").trim(), entertainmentGrade: report.entertainmentGrade ?? null,
+      brandValue: (report.brandValue ?? "").trim(), brandGrade: report.phase === "phase3" ? null : report.brandGrade ?? null,
+      salesValue: (report.salesValue ?? "").trim(), salesGrade: report.phase === "phase3" ? null : report.salesGrade ?? null,
+      entertainmentValue: (report.entertainmentValue ?? "").trim(), entertainmentGrade: report.phase === "phase3" ? null : report.entertainmentGrade ?? null,
       improvement: report.improvement.trim(), url: report.url.trim(),
       evidence: report.evidence, examples: report.examples, createdAt: report.createdAt, updatedAt: report.updatedAt, order: report.order,
       translation: { sourceLanguage, sourceUpdatedAt: report.updatedAt, status: "pending" as const, attempts: 0 },
@@ -262,5 +262,38 @@ export const generateUploadUrl = mutation({
     else if (existing) await ctx.db.patch(existing._id, { count: 1, windowStartedAt: now, updatedAt: now });
     else await ctx.db.insert("uploadRateLimits", { sessionToken: token, count: 1, windowStartedAt: now, updatedAt: now });
     return await ctx.storage.generateUploadUrl();
+  },
+});
+
+// Run during deployment to remove obsolete scores without touching report text.
+export const clearPhaseThreeGradesBatch = internalMutation({
+  args: { cursor: v.union(v.string(), v.null()) },
+  returns: v.object({ cursor: v.string(), done: v.boolean(), cleared: v.number() }),
+  handler: async (ctx, { cursor }) => {
+    const batch = await ctx.db.query("reports").paginate({ cursor, numItems: 100 });
+    let cleared = 0;
+    for (const report of batch.page) {
+      if (report.phase !== "phase3") continue;
+      if ([report.brandGrade, report.salesGrade, report.entertainmentGrade, report.grade].some((grade) => grade != null)) {
+        await ctx.db.patch(report._id, { brandGrade: null, salesGrade: null, entertainmentGrade: null, grade: undefined });
+        cleared++;
+      }
+    }
+    return { cursor: batch.continueCursor, done: batch.isDone, cleared };
+  },
+});
+
+export const clearPhaseThreeGrades = internalAction({
+  args: {},
+  returns: v.number(),
+  handler: async (ctx): Promise<number> => {
+    let cursor: string | null = null;
+    let cleared = 0;
+    for (;;) {
+      const batch: { cursor: string; done: boolean; cleared: number } = await ctx.runMutation(internal.reports.clearPhaseThreeGradesBatch, { cursor });
+      cleared += batch.cleared;
+      if (batch.done) return cleared;
+      cursor = batch.cursor;
+    }
   },
 });
