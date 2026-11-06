@@ -2,12 +2,12 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useRef, useState } from "react";
-import { PHASE_LABELS, type Language, type Project, type ReportPhase } from "../../lib/domain";
+import { REPORT_PHASES, PHASE_LABELS, type Language, type Project, type ReportPhase } from "../../lib/domain";
 import { LanguageToggle, ProjectLogo } from "../ui/AuditControls";
 
 type HeaderCopy = { project: string; phase: string; switchProject: string; logOut: string; viewOnly: string; editAccess: string };
 
-export function AppHeader({ language, project, phase, projects, canEdit, copy, onLanguage, onProject, onLogout }: { language: Language; project: Project; phase: ReportPhase; projects: readonly Project[]; canEdit: boolean; copy: HeaderCopy; onLanguage: (language: Language) => void; onProject: (project: Project) => void; onLogout: () => void | Promise<void> }) {
+export function AppHeader({ language, project, phase, projects, canEdit, copy, onLanguage, onProject, onPhase, onLogout }: { language: Language; project: Project; phase: ReportPhase; projects: readonly Project[]; canEdit: boolean; copy: HeaderCopy; onLanguage: (language: Language) => void; onProject: (project: Project) => void; onPhase: (phase: ReportPhase) => void; onLogout: () => void | Promise<void> }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -20,7 +20,7 @@ export function AppHeader({ language, project, phase, projects, canEdit, copy, o
 
   const switchable = projects.length > 0;
   return <header><div><img className="brand-mark small logo-image" src="/alber.png" alt="Alber" /><span className="wordmark">Alber Audit</span><div className={`project-menu ${switchable ? "" : "static"}`} ref={menuRef} onMouseEnter={() => switchable && setOpen(true)} onMouseLeave={() => setOpen(false)}>
-    {switchable ? <button className="project-menu-trigger" aria-label={copy.switchProject} aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((current) => !current)}><ProjectLogo project={project} /><span><small>{copy.phase} {phase === "phase1" ? 1 : 2} · {PHASE_LABELS[language][phase]}</small><strong>{project}</strong></span><b>⌄</b></button> : <div className="project-menu-trigger project-menu-current"><ProjectLogo project={project} /><span><small>{copy.phase} {phase === "phase1" ? 1 : 2}</small><strong>{project}</strong></span></div>}
+    {switchable ? <button className="project-menu-trigger" aria-label={copy.switchProject} aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((current) => !current)}><ProjectLogo project={project} /><span><small>{copy.phase} {REPORT_PHASES.indexOf(phase) + 1} · {PHASE_LABELS[language][phase]}</small><strong>{project}</strong></span><b>⌄</b></button> : <div className="project-menu-trigger project-menu-current"><ProjectLogo project={project} /><span><small>{copy.phase} {REPORT_PHASES.indexOf(phase) + 1}</small><strong>{project}</strong></span></div>}
     {switchable && open && <div className="project-menu-panel" role="listbox" aria-label={copy.switchProject}>{projects.map((option) => <button key={option} role="option" aria-selected={option === project} className={option === project ? "active" : ""} onClick={() => { setOpen(false); onProject(option); }}><ProjectLogo project={option} /><span><strong>{option}</strong><small>{language === "ro" ? "Alege faza" : "Choose phase"}</small></span><b>↗</b></button>)}</div>}
-  </div></div><div className="header-actions"><span className={`access-badge ${canEdit ? "editor" : "viewer"}`}><i />{canEdit ? copy.editAccess : copy.viewOnly}</span><LanguageToggle language={language} onChange={onLanguage} /><button className="ghost" onClick={onLogout}>{copy.logOut}</button></div></header>;
+  </div></div><div className="header-actions"><label className="flex items-center gap-2 text-sm"><span>{copy.phase}</span><select className="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm" value={phase} onChange={(event) => onPhase(event.target.value as ReportPhase)}>{REPORT_PHASES.map((option, index) => <option key={option} value={option}>{copy.phase} {index + 1} · {PHASE_LABELS[language][option]}</option>)}</select></label><span className={`access-badge ${canEdit ? "editor" : "viewer"}`}><i />{canEdit ? copy.editAccess : copy.viewOnly}</span><LanguageToggle language={language} onChange={onLanguage} /><button className="ghost" onClick={onLogout}>{copy.logOut}</button></div></header>;
 }

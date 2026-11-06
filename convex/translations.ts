@@ -14,7 +14,7 @@ const MAX_RETRIES = 5;
 const BACKFILL_SPACING_MS = 4_000;
 const TRANSLATION_MODEL = "gpt-5.4-mini";
 const NON_RETRYABLE_QUOTA_CODES = new Set(["insufficient_quota", "credit_balance_exhausted", "billing_hard_limit_reached"]);
-const reportPhaseValidator = v.union(v.literal("phase1"), v.literal("phase2"));
+const reportPhaseValidator = v.union(v.literal("phase1"), v.literal("phase2"), v.literal("phase3"));
 
 class TranslationProviderError extends Error {
   constructor(message: string, readonly retryable: boolean, readonly retryAfterMs?: number) {

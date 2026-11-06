@@ -55,7 +55,7 @@ export const reportResultValidator = v.object({
   id: v.string(),
   title: v.string(),
   project: v.string(),
-  phase: v.union(v.literal("phase1"), v.literal("phase2")),
+  phase: v.union(v.literal("phase1"), v.literal("phase2"), v.literal("phase3")),
   platform: v.string(),
   contentType: v.string(),
   brandValue: v.string(),

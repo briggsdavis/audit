@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import { PHASE_LABELS, PROJECT_ENTRIES, VIA_PROJECTS, type Language, type Project, type ProjectEntry, type ReportPhase } from "../../lib/domain";
+import { REPORT_PHASES, PHASE_LABELS, PROJECT_ENTRIES, VIA_PROJECTS, type Language, type Project, type ProjectEntry, type ReportPhase } from "../../lib/domain";
 import { LanguageToggle, ProjectLogo } from "../ui/AuditControls";
 
 type ProjectGateCopy = {
@@ -38,16 +38,12 @@ export function ProjectGate({ language, copy, projects, choosingVia, phaseProjec
       <h1>{copy.choosePhase}</h1>
       <p>{copy.choosePhaseHint}</p>
       <div className="phase-gate-options">
-        {(["phase1", "phase2"] as const).map((phase, index) => <button key={phase} onClick={() => onPhase(phase)}>
+        {REPORT_PHASES.map((phase, index) => <button key={phase} onClick={() => onPhase(phase)}>
           <span className="phase-number">0{index + 1}</span>
           <span><small>{copy.phase} {index + 1}</small><strong>{PHASE_LABELS[language][phase]}</strong></span>
           <b>{copy.available} →</b>
         </button>)}
-        <button disabled aria-disabled="true">
-          <span className="phase-number">03</span>
-          <span><small>{copy.phase} 3</small><strong>{copy.comingSoon}</strong></span>
-          <b>—</b>
-        </button>
+
       </div>
       <button className="back-to-projects" onClick={onBack}>← {copy.backToProjectSelection}</button>
     </section>

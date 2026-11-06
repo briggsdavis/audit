@@ -1,17 +1,17 @@
 import type { Id } from "../../convex/_generated/dataModel";
 
-export const PLATFORMS = ["Instagram", "TikTok", "Advertisement", "Website"] as const;
+export const PLATFORMS = ["Instagram", "TikTok", "Advertisement", "Website", "Meta Ads", "Google Ads"] as const;
 export type Platform = (typeof PLATFORMS)[number];
 
 export const PROJECTS = ["City of Mara", "NordOne", "Vivalia", "Via Carmina", "Via Universitate"] as const;
 export type Project = (typeof PROJECTS)[number];
 export type ProjectEntry = Project | "Via Projects";
 
-export const REPORT_PHASES = ["phase1", "phase2"] as const;
+export const REPORT_PHASES = ["phase1", "phase2", "phase3"] as const;
 export type ReportPhase = (typeof REPORT_PHASES)[number];
 export const PHASE_LABELS: Record<Language, Record<ReportPhase, string>> = {
-  en: { phase1: "Content Focused", phase2: "Strategy" },
-  ro: { phase1: "Axat pe conținut", phase2: "Strategie" },
+  en: { phase1: "Content Focused", phase2: "Strategy", phase3: "Paid advertising" },
+  ro: { phase1: "Axat pe conținut", phase2: "Strategie", phase3: "Publicitate plătită" },
 };
 
 export type AuditAccess = {
@@ -35,6 +35,8 @@ export const PROJECT_LOGOS: Record<ProjectEntry, string> = {
 export const CONTENT_TYPES_BY_PLATFORM: Record<Platform, readonly string[]> = {
   Instagram: ["Carousel", "Post", "Reel"],
   TikTok: ["Carousel", "Video"],
+  "Meta Ads": ["Carousel", "Image", "Text"],
+  "Google Ads": ["Carousel", "Image", "Text"],
   Advertisement: ["Carousel", "Image", "Text"],
   Website: [],
 };
@@ -159,8 +161,8 @@ export const EMPTY_REPORT: Omit<Report, "id" | "createdAt" | "updatedAt" | "orde
 };
 
 export const PLATFORM_LABELS: Record<Language, Record<Platform, string>> = {
-  en: { Instagram: "Instagram", TikTok: "TikTok", Advertisement: "Advertisement", Website: "Website" },
-  ro: { Instagram: "Instagram", TikTok: "TikTok", Advertisement: "Publicitate", Website: "Site web" },
+  en: { Instagram: "Instagram", TikTok: "TikTok", Advertisement: "Advertisement", "Meta Ads": "Meta Ads", "Google Ads": "Google Ads", Website: "Website" },
+  ro: { Instagram: "Instagram", TikTok: "TikTok", Advertisement: "Publicitate", "Meta Ads": "Meta Ads", "Google Ads": "Google Ads", Website: "Site web" },
 };
 
 export const CONTENT_TYPE_LABELS: Record<Language, Record<string, string>> = {
@@ -195,4 +197,8 @@ export function filterAndSortReports(reports: readonly Report[], filters: Report
       && (!filters.contentTypes.length || filters.contentTypes.includes(report.contentType))
       && (!filters.valueTypes.length || filters.valueTypes.every((type) => valueTypesFor(report).includes(type))))
     .sort((left, right) => right.createdAt - left.createdAt);
+}
+
+export function platformsForPhase(phase: ReportPhase): readonly Platform[] {
+  return phase === "phase3" ? ["Instagram", "TikTok", "Meta Ads", "Google Ads", "Website"] : ["Instagram", "TikTok", "Advertisement", "Website"];
 }

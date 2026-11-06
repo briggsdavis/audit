@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CONTENT_TYPE_LABELS, PLATFORMS, PLATFORM_LABELS, VALUE_TYPES, type Language, type Platform, type ValueType } from "../../lib/domain";
+import { CONTENT_TYPE_LABELS, platformsForPhase, type ReportPhase, PLATFORM_LABELS, VALUE_TYPES, type Language, type Platform, type ValueType } from "../../lib/domain";
 import { FilterGroup } from "../ui/AuditControls";
 
 type ToolbarCopy = {
@@ -13,13 +13,13 @@ type ToolbarCopy = {
 function PlatformIcon({ platform }: { platform: Platform | "all" }) {
   if (platform === "Instagram") return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r=".75" /></svg>;
   if (platform === "TikTok") return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4v10.2a4.2 4.2 0 1 1-3.2-4.1" /><path d="M14.5 4c.5 2.8 2.2 4.4 5 4.8" /></svg>;
-  if (platform === "Advertisement") return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 13 13-6v10L4 11Z" /><path d="M7 13.6 8.5 20h3L10 12.2M19.5 9v6" /></svg>;
+  if (["Advertisement", "Meta Ads", "Google Ads"].includes(platform)) return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 13 13-6v10L4 11Z" /><path d="M7 13.6 8.5 20h3L10 12.2M19.5 9v6" /></svg>;
   if (platform === "Website") return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M3.8 12h16.4M12 3.5c2.3 2.4 3.5 5.2 3.5 8.5S14.3 18.1 12 20.5C9.7 18.1 8.5 15.3 8.5 12S9.7 5.9 12 3.5Z" /></svg>;
   return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></svg>;
 }
 
-export function ReportToolbar({ language, copy, query, platform, contentTypes, valueTypes, availableContentTypes, canEdit, selectMode, view, onQuery, onPlatform, onToggleFilter, onSelectMode, onView }: {
-  language: Language; copy: ToolbarCopy; query: string; platform: Platform | null; contentTypes: string[]; valueTypes: ValueType[];
+export function ReportToolbar({ phase, language, copy, query, platform, contentTypes, valueTypes, availableContentTypes, canEdit, selectMode, view, onQuery, onPlatform, onToggleFilter, onSelectMode, onView }: {
+  phase: ReportPhase; language: Language; copy: ToolbarCopy; query: string; platform: Platform | null; contentTypes: string[]; valueTypes: ValueType[];
   availableContentTypes: string[]; canEdit: boolean; selectMode: boolean; view: "list" | "grid";
   onQuery: (query: string) => void; onPlatform: (platform: Platform | null) => void;
   onToggleFilter: (group: "contentType" | "valueType", value: string) => void;
@@ -40,7 +40,7 @@ export function ReportToolbar({ language, copy, query, platform, contentTypes, v
     <div className="search"><span>⌕</span><input aria-label={copy.searchReports} placeholder={copy.searchReports} value={query} onChange={(event) => onQuery(event.target.value)} /></div>
     <div className="platform-quick-filter" aria-label={copy.platform}>
       <button className={platform === null ? "active" : ""} aria-pressed={platform === null} onClick={() => onPlatform(null)}><PlatformIcon platform="all" /><span>{copy.allPlatforms}</span></button>
-      {PLATFORMS.map((option) => <button key={option} className={platform === option ? "active" : ""} aria-pressed={platform === option} onClick={() => onPlatform(platform === option ? null : option)}><PlatformIcon platform={option} /><span>{PLATFORM_LABELS[language][option]}</span></button>)}
+      {platformsForPhase(phase).map((option) => <button key={option} className={platform === option ? "active" : ""} aria-pressed={platform === option} onClick={() => onPlatform(platform === option ? null : option)}><PlatformIcon platform={option} /><span>{PLATFORM_LABELS[language][option]}</span></button>)}
     </div>
     <div className="toolbar-actions">
       <div className="filter-wrap" ref={filterRef}><button aria-expanded={filterOpen} className={`tool-button ${filterOpen ? "active" : ""}`} onClick={() => setFilterOpen((open) => !open)}>≡ <span>{copy.filter}</span>{filterCount > 0 && <b>{filterCount}</b>}</button>

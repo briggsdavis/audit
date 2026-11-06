@@ -12,7 +12,7 @@ const reportFields = {
   id: v.string(),
   title: v.string(),
   project: v.string(),
-  phase: v.union(v.literal("phase1"), v.literal("phase2")),
+  phase: v.union(v.literal("phase1"), v.literal("phase2"), v.literal("phase3")),
   platform: v.string(),
   contentType: v.string(),
   brandValue: v.optional(v.string()),
@@ -30,10 +30,10 @@ const reportFields = {
   order: v.number(),
 };
 
-const reportPhaseValidator = v.union(v.literal("phase1"), v.literal("phase2"));
+const reportPhaseValidator = v.union(v.literal("phase1"), v.literal("phase2"), v.literal("phase3"));
 const languageValidator = v.union(v.literal("en"), v.literal("ro"));
 
-function isPhase(recordPhase: "phase1" | "phase2" | undefined, phase: "phase1" | "phase2") {
+function isPhase(recordPhase: "phase1" | "phase2" | "phase3" | undefined, phase: "phase1" | "phase2" | "phase3") {
   return (recordPhase ?? "phase1") === phase;
 }
 
@@ -47,6 +47,8 @@ const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const contentTypes: Record<string, Set<string>> = {
   Instagram: new Set(["Carousel", "Post", "Reel"]),
   TikTok: new Set(["Carousel", "Video"]),
+  "Meta Ads": new Set(["Carousel", "Image", "Text"]),
+  "Google Ads": new Set(["Carousel", "Image", "Text"]),
   Advertisement: new Set(["Carousel", "Image", "Text"]),
 };
 
@@ -170,6 +172,7 @@ export const save = mutation({
     for (const grade of [report.brandGrade, report.salesGrade, report.entertainmentGrade]) {
       if (grade !== undefined && grade !== null && (!Number.isInteger(grade) || grade < 1 || grade > 10)) throw new ConvexError("Grades must be whole numbers from 1 to 10");
     }
+    if ((report.phase === "phase3" && report.platform === "Advertisement") || (report.phase !== "phase3" && ["Meta Ads", "Google Ads"].includes(report.platform))) throw new ConvexError("Invalid platform for this phase");
     let contentType = report.contentType.trim();
     if (report.platform === "Website") {
       if (!contentType || contentType.length > 120) throw new ConvexError("A valid website content type is required");
