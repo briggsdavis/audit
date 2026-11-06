@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body className="[&_button]:!rounded-md [&_input[type=button]]:!rounded-md [&_input[type=submit]]:!rounded-md"><ConvexClientProvider>{children}</ConvexClientProvider></body></html>;
+  return <html lang="en"><body className="[&_button]:!rounded-md [&_.language-toggle_button]:!rounded-full [&_.view-switch_button]:!rounded-full [&_input[type=button]]:!rounded-md [&_input[type=submit]]:!rounded-md"><ConvexClientProvider>{children}</ConvexClientProvider></body></html>;
 }
