@@ -38,7 +38,7 @@ export function ReportToolbar({ phase, language, copy, query, platform, contentT
   const filterCount = contentTypes.length + valueTypes.length;
   return <div className="toolbar">
     <div className="search"><span>⌕</span><input aria-label={copy.searchReports} placeholder={copy.searchReports} value={query} onChange={(event) => onQuery(event.target.value)} /></div>
-    <div className="platform-quick-filter" aria-label={copy.platform}>
+    <div className="platform-quick-filter !grid-flow-col !auto-cols-fr !grid-cols-none [&>button]:!border-b-0 [&>button:not(:last-child)]:!border-r [&>button]:max-sm:flex-col [&>button]:max-sm:gap-1 [&>button]:max-sm:px-1 [&>button]:max-sm:text-[10px]" aria-label={copy.platform}>
       <button className={platform === null ? "active" : ""} aria-pressed={platform === null} onClick={() => onPlatform(null)}><PlatformIcon platform="all" /><span>{copy.allPlatforms}</span></button>
       {platformsForPhase(phase).map((option) => <button key={option} className={platform === option ? "active" : ""} aria-pressed={platform === option} onClick={() => onPlatform(platform === option ? null : option)}><PlatformIcon platform={option} /><span>{PLATFORM_LABELS[language][option]}</span></button>)}
     </div>

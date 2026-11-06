@@ -10,8 +10,8 @@ export type ProjectEntry = Project | "Via Projects";
 export const REPORT_PHASES = ["phase1", "phase2", "phase3"] as const;
 export type ReportPhase = (typeof REPORT_PHASES)[number];
 export const PHASE_LABELS: Record<Language, Record<ReportPhase, string>> = {
-  en: { phase1: "Content Focused", phase2: "Strategy", phase3: "Paid advertising" },
-  ro: { phase1: "Axat pe conținut", phase2: "Strategie", phase3: "Publicitate plătită" },
+  en: { phase1: "Phase 1", phase2: "Phase 2", phase3: "Phase 3" },
+  ro: { phase1: "Faza 1", phase2: "Faza 2", phase3: "Faza 3" },
 };
 
 export type AuditAccess = {

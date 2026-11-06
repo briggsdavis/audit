@@ -40,7 +40,7 @@ export function ProjectGate({ language, copy, projects, choosingVia, phaseProjec
       <div className="phase-gate-options">
         {REPORT_PHASES.map((phase, index) => <button key={phase} onClick={() => onPhase(phase)}>
           <span className="phase-number">0{index + 1}</span>
-          <span><small>{copy.phase} {index + 1}</small><strong>{PHASE_LABELS[language][phase]}</strong></span>
+          <span><strong>{PHASE_LABELS[language][phase]}</strong></span>
           <b>{copy.available} →</b>
         </button>)}
 
